@@ -1476,6 +1476,116 @@ int distinctSubseqII(string S) {
 }
 
 // LC 121 - Best Time to Buy and Sell Stock
+int bestTimeToBuyAndSellStock(vector<int>& prices) {
+    int maxPro = 0;
+    int minPrice = INT_MAX;
+    for(int i = 0; i < prices.size(); i++){
+        minPrice = min(minPrice, prices[i]);
+        maxPro = max(maxPro, prices[i] - minPrice);
+    }
+    return maxPro;
+}
+
+// LC 123 - Best Time to Buy and Sell Stock III
+int bestTimeToBuyAndSellStockIII(vector<int>& prices) {
+    int n=(int) prices.size(), ans=0;
+    if(n<=1) return 0;
+    vector<int> l(n, 0), r(n, 0);
+    /*
+     Logic - At any given day i, the maximum profit of one transaction (starting
+     from day 0 to day i) is prices[i] - minPrice.
+     Note that the minPrice is the minimum price from day 0 to i (including day i).
+     */
+    int minPrice=INT_MAX, lProfit=0;
+    for(int i=0;i<n;i++) {
+        minPrice=min(minPrice, prices[i]);
+        l[i]=lProfit=max(lProfit, prices[i]-minPrice);
+    }
+    /*
+     Logic - At any given day i, the maximum profit of one transaction (starting
+     from day i to day n-1) is maxPrice - prices[i].
+     Note that the maxPrice is the maximum price from day n-1 to i (including day i).
+     */
+    int maxPrice=prices[n-1], rProfit=0;
+    for(int i=n-2;i>=0;i--) {
+        maxPrice=max(maxPrice, prices[i]);
+        r[i]=rProfit=max(rProfit, maxPrice-prices[i]);
+        ans=max(ans, l[i]+r[i+1]); // calculating final answer
+    }
+    return max(ans, r[0]);
+}
+
+// LC 188 - Best Time to Buy and Sell Stock IV
+int bestTimeToBuyAndSellStockIV(int k, vector<int>& prices) {
+    /**
+     * dp[i, j] represents the max profit up until prices[j] using at most i transactions.
+     * dp[i, j] = max(dp[i, j-1], prices[j] - prices[jj] + dp[i-1, jj]) { jj in range of [0, j-1] } //O(k(n^2))
+     *          = max(dp[i, j-1], prices[j] + max(dp[i-1, jj] - prices[jj])) //O(kn)
+     * dp[0, j] = 0; 0 transactions makes 0 profit
+     * dp[i, 0] = 0; if there is only one price data point you can't make any transaction.
+     */
+    
+    int n=(int) prices.size();
+    if(n<=1) return 0;
+    if(k>=n/2) {
+        int profit=0;
+        for(int i=1;i<n;i++) {
+            if(prices[i]>prices[i-1]) profit+=prices[i]-prices[i-1];
+        }
+        return profit;
+    }
+    vector<vector<int>> dp(k+1, vector<int>(n,0));
+    //O(kn)
+    for(int i=1;i<=k;i++) {
+        int localMax=dp[i-1][0]-prices[0];
+        for(int j=1;j<n;j++) {
+            dp[i][j]=max(dp[i][j-1], prices[j]+localMax);
+            localMax=max(localMax, dp[i-1][j]-prices[j]);
+        }
+    }
+    //O(k(n^2))
+    /*
+     for(int i=1;i<=k;i++) {
+     int localMax=dp[i-1][0]-prices[0];
+     for(int j=1;j<n;j++) {
+     int not_sell=dp[i][j-1], sell=0;
+     for(int m=0;m<j;m++) {
+     sell=max(sell, prices[j]-prices[m]+dp[i-1][m]);
+     }
+     dp[i][j]=max(not_sell, sell);
+     }
+     }
+     */
+    return dp[k][n-1];
+}
+
+// LC 368 - Largest Divisible Subset
+vector<int> largestDivisibleSubset(vector<int>& nums) {
+    int n=(int) nums.size(), maxCount=1, maxIdx=0;
+    if(n<=1) return nums;
+    sort(nums.begin(), nums.end());
+    vector<int> count(n,1), parent(n, -1);
+    for(int i=n-1;i>=0;i--) {
+        for(int j=i+1;j<n;j++) {
+            if(nums[j]%nums[i]==0 && count[i]<count[j]+1) {
+                count[i]=count[j]+1;
+                parent[i]=j;
+            }
+        }
+        if(maxCount<count[i]) {
+            maxCount=count[i];
+            maxIdx=i;
+        }
+    }
+    if(maxCount==1) return {nums[0]};
+    vector<int> ans(maxCount);
+    int i=maxIdx, j=0;
+    while(j<maxCount) {
+        ans[j++]=nums[i];
+        i=parent[i];
+    }
+    return ans;
+}
 
 int main() {
 //    fibonacci();
