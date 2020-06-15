@@ -1587,6 +1587,120 @@ vector<int> largestDivisibleSubset(vector<int>& nums) {
     return ans;
 }
 
+// LC 309 - Best Time to Buy and Sell Stock with Cooldown
+int bestTimeToBuyAndSellStockWithCooldown(vector<int>& prices) {
+    int n=(int) prices.size();
+    if(n<=1) return 0;
+    vector<vector<int>> dp(n, vector<int> (2));
+    
+    // base cases
+    dp[0][0]=0;             // day 0, 0 stock in hand
+    dp[0][1]=-prices[0];    // day 0, 1 stock in hand, buy on day 0;
+    
+    // day 1, 0 stock in hand, do nothing or sell the stock bought on day 0;
+    dp[1][0]=max(0, prices[1]-prices[0]);
+    // day 1, 1 stock in hand, do nothing or buy on day 1;
+    dp[1][1]=max(dp[0][1], -prices[1]);
+    
+    // dp
+    for(int i=2;i<n;i++) {
+        dp[i][0]=max(dp[i-1][0]/*do nothing*/, dp[i-1][1]+prices[i]/*sell yesterday stock*/);
+        dp[i][1]=max(dp[i-1][1]/*do nothing*/, dp[i-2][0]-prices[i]/*buy with cooldown*/);
+    }
+    return dp[n-1][0];
+}
+
+// LC 714 - Best Time to Buy and Sell Stock with Transaction Fee
+int bestTimeToBuyAndSellStockWithTransactionFee(vector<int>& prices, int fee) {
+    int n=(int) prices.size();
+    if(n<=1) return 0;
+    vector<vector<int>> dp(n, vector<int> (2));
+    
+    // base cases
+    dp[0][0]=0;             // day 0, 0 stock in hand
+    dp[0][1]=-prices[0];    // day 0, 1 stock in hand, buy on day 0;
+    
+    // dp
+    for(int i=1;i<n;i++) {
+        dp[i][0]=max(dp[i-1][0]/*do nothing*/, dp[i-1][1]+prices[i]-fee/*sell*/);
+        dp[i][1]=max(dp[i-1][1]/*do nothing*/, dp[i-1][0]-prices[i]/*buy*/);
+    }
+    return dp[n-1][0];
+}
+
+// LC 689 - Maximum Sum of 3 Non-Overlapping Subarrays
+vector<int> maxSumOfThreeSubarrays(vector<int>& nums, int k) {
+    int n=(int) nums.size();
+    vector<int> subsetSum(n-k+1), lPos(n-k+1), rPos(n-k+1), ans(3,-1);
+    int sum=0;
+    for(int i=0;i<k;i++) sum+=nums[i];  // first subset;
+    subsetSum[0]=sum;
+    for(int i=k;i<n;i++) {
+        sum+=nums[i]-nums[i-k];
+        subsetSum[i+1-k]=sum;
+    }
+    int idx=0; // index with max subsetSum to the left;
+    for(int i=0;i<=n-k;i++) {
+        if(subsetSum[i]>subsetSum[idx]) idx=i;
+        lPos[i]=idx;
+    }
+    idx=n-k; // index with max subsetSum to the right;
+    for(int i=n-k;i>=0;i--) {
+        if(subsetSum[i]>=subsetSum[idx]) idx=i;
+        rPos[i]=idx;
+    }
+    for(int i=k;i<=n-(2*k);i++) {
+        int l=lPos[i-k], r=rPos[i+k];
+        if(ans[0]==-1 ||subsetSum[l]+subsetSum[i]+subsetSum[r]>
+           subsetSum[ans[0]]+subsetSum[ans[1]]+subsetSum[ans[2]]) {
+            ans={l,i,r};
+        }
+    }
+    return ans;
+}
+
+// GFG - Dice Throw
+long long int diceThrow(int m/*noOfFaces*/, int n/*noOfDices*/, int target) {
+    if(n*m<target) return 0;
+    if(n*m==target) return 1;
+    vector<vector<long long int>> dp(n, vector<long long int> (target, 0));
+    for(int i=0;i<n;i++) {
+        for(int j=i;j<(i+1)*m && j<target; j++) {
+            if(i==0) dp[i][j]=j+1<=m?1:0;
+            else {
+                for(int k=1;k<=m && j-k>=i-1; k++) {
+                    dp[i][j]+=dp[i-1][j-k];
+                }
+            }
+        }
+    }
+    return dp[n-1][target-1];
+}
+
+// GFG - Maximize The Cut Segments
+int maximizeTheCutSegements(int n,int x, int y, int z) {
+    vector<int> dp(n+1, -1);
+    dp[0]=0;
+    for(int i=1;i<=n;i++) {
+        if(i-x>=0 && dp[i-x]!=-1) dp[i]=max(dp[i], dp[i-x]+1);
+        if(i-y>=0 && dp[i-y]!=-1) dp[i]=max(dp[i], dp[i-y]+1);
+        if(i-z>=0 && dp[i-z]!=-1) dp[i]=max(dp[i], dp[i-z]+1);
+    }
+    return dp[n];
+}
+
+// GFG - Maximum Product Cutting
+int maximumProductCutting(int n) {
+    vector<int> dp(n+1);
+    dp[0]=dp[1]=0;
+    for(int i=1;i<=n;i++) {
+        for (int j=1; j<=i/2; j++) {
+            dp[i]=max(dp[i], max(j*dp[i-j], (i-j)*dp[j]));
+        }
+    }
+    return dp[n];
+}
+
 int main() {
 //    fibonacci();
 //    uniquePaths();

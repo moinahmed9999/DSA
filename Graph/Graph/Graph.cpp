@@ -306,6 +306,46 @@ void bipartite() {
     cout<<(boolalpha)<<true<<"\n";
 }
 
+// LC 787 - Cheapest Flights Within K Stops
+int dfsCheapestFlightWithinKStops(vector<vector<vector<int>>>& graph, vector<bool>& visited, vector<vector<int>>& dp,  int src, int dst, int k) {
+    if(src==dst) return 0;
+    if(k==0) return -1;
+    if(dp[k][src]!=0) return dp[k][src];
+    visited[src]=true;
+    int res, minCost=INT_MAX;
+    for(vector<int> edge: graph[src]) {
+        if(!visited[edge[0]]) {
+            res=dfsCheapestFlightWithinKStops(graph, visited, dp, edge[0], dst, k-1);
+            if(res!=-1) {
+                minCost=min(minCost, res+edge[1]);
+            }
+        }
+    }
+    visited[src]=false;
+    return dp[k][src]=minCost==INT_MAX?-1:minCost;
+}
+
+int cheapestFlightWithinKStops(int n, vector<vector<int>>& flights, int src, int dst, int K) {
+    vector<vector<vector<int>>> graph(n);
+    vector<bool> visited(n, false);
+    vector<vector<int>> dp(K+1, vector<int> (n, 0));
+    for(vector<int> flight: flights) {
+        graph[flight[0]].push_back({flight[1], flight[2]});
+    }
+    visited[src]=true;
+    int res, minCost=INT_MAX;
+    for(vector<int> edge: graph[src]) {
+        if(!visited[edge[0]]) {
+            res=dfsCheapestFlightWithinKStops(graph, visited, dp, edge[0], dst, K);
+            if(res!=-1) {
+                minCost=min(minCost, res+edge[1]);
+            }
+        }
+    }
+    visited[src]=false;
+    return minCost==INT_MAX?-1:minCost;
+}
+
 int main() {
     addEdge(0, 1, 10);
     addEdge(0, 3, 10);
