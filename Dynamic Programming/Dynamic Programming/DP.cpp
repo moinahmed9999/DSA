@@ -1701,6 +1701,148 @@ int maximumProductCutting(int n) {
     return dp[n];
 }
 
+// GFG - Minimum sum partition
+int minimumSumPartition(vector<int> nums) {
+    int n=(int) nums.size(), diff=INT_MAX;
+    int sum=accumulate(nums.begin(), nums.end(), 0);
+    vector<vector<int>> dp(n+1, vector<int> (sum+1, 0));
+    dp[0][0]=1;
+    for (int i=1; i<=n; i++) {
+        for (int j=0; j<=sum; j++) {
+            if (j==0 || j-nums[i-1]<0) {
+                dp[i][j]=dp[i-1][j];
+            } else {
+                dp[i][j]+=dp[i-1][j]/*dont include*/ + dp[i-1][j-nums[i-1]]/*include*/;
+            }
+        }
+    }
+    for(int i=0;i<=sum/2;i++) {
+        if(dp[n][i]!=0 && dp[n][sum-i]!=0) {
+            diff=min(diff, sum-(2*i));
+        }
+    }
+    return diff;
+}
+
+// GFG - Optimal Strategy For A Game
+int optimalStrategyForAGame(vector<int>& arr) {
+    int n=(int) arr.size();
+    vector<vector<int>> p1(n, vector<int> (n, 0));
+    vector<vector<int>> p2(n, vector<int> (n, 0));
+    for(int gap=0;gap<n;gap++) {
+        for(int i=0, j=gap; j<n; i++, j++) {
+            if(gap==0) p1[i][j]=arr[i];
+            else {
+                p1[i][j]=max(arr[i]+p2[i+1][j], arr[j]+p2[i][j-1]);
+                p2[i][j]=min(p1[i+1][j], p1[i][j-1]);
+            }
+        }
+    }
+    return p1[0][n-1];
+}
+
+// GFG - Shortest Common Supersequence
+int shortestCommonSupersequence(string s1, string s2) {
+    int n=(int) s1.size(), m=(int) s2.size();
+    vector<vector<int>> dp(n+1, vector<int> (m+1,0));
+    int lcs=0;
+    for(int i=n-1;i>=0;i--) {
+        for(int j=m-1;j>=0;j--) {
+            if(s1[i]==s2[j]) {
+                dp[i][j]=dp[i+1][j+1] + 1;
+            } else {
+                dp[i][j]=max(dp[i][j+1], dp[i+1][j]);
+            }
+            lcs=max(lcs, dp[i][j]);
+        }
+    }
+    return n+m-lcs;
+}
+
+// LC 1092 - Shortest Common Supersequence
+string longestCommonSubsequenceString(string& A, string& B) {
+    int n=(int) A.size(), m=(int) B.size();
+    vector<vector<string>> dp(n+1, vector<string>(m+1, ""));
+    for (int i=0; i<n; ++i)
+        for (int j=0; j<m; ++j)
+            if (A[i]==B[j])
+                dp[i+1][j+1]=dp[i][j]+A[i];
+            else
+                dp[i+1][j+1]=dp[i+1][j].size() > dp[i][j+1].size() ? dp[i+1][j]: dp[i][j+1];
+    return dp[n][m];
+}
+
+string shortestCommonSupersequence1(string& A, string& B) {
+    int i=0, j=0;
+    string res="";
+    string lcs=longestCommonSubsequenceString(A, B);
+    for (char c :lcs) {
+        while (A[i]!= c)
+            res+= A[i++];
+        while (B[j]!=c)
+            res+=B[j++];
+        res+=c; i++; j++;
+    }
+    return res+A.substr(i)+B.substr(j);
+}
+
+string shortestCommonSupersequence2(string str1, string str2) {
+    int n =(int) str1.size(), m=(int) str2.size();
+    vector<vector<int>> dp(n+1, vector<int> (m+1, 0));
+    for(int i=1; i<n+1; i++) {
+        for(int j=1; j<m+1; j++) {
+            if(str1[i-1] == str2[j-1]){
+                dp[i][j] = 1 + dp[i-1][j-1];
+            }
+            else
+                dp[i][j] = max(dp[i-1][j], dp[i][j-1]);
+        }
+    }
+    int i=n, j=m;
+    string res;
+    while(i>0 && j>0) {
+        if(str1[i-1] == str2[j-1]) {
+            res.push_back(str1[i-1]);
+            i--;
+            j--;
+        } else if(dp[i-1][j] > dp[i][j-1]) {
+            res.push_back(str1[i-1]);
+            i--;
+        } else {
+            res.push_back(str2[j-1]);
+            j--;
+        }
+    }
+    while(i>0) {
+        res.push_back(str1[i-1]);
+        i--;
+    }
+    while(j>0) {
+        res.push_back(str2[j-1]);
+        j--;
+    }
+    reverse(res.begin(), res.end());
+    return res;
+}
+
+// GFG - Minimum number of jumps
+int minimumNoOfJumps(vector<int>& nums) {
+    int n=(int) nums.size();
+    vector<int> dp(n, INT_MAX);
+    dp[n-1]=0;
+    for(int i=n-2;i>=0;i--) {
+        if(nums[i]==0) continue;
+        for(int jump=1; i+jump<n && jump<=nums[i]; jump++) {
+            if((i+jump)==n-1 || (nums[i+jump]!=0 && dp[i+jump]!=INT_MAX)) {
+                dp[i]=min(dp[i], dp[i+jump]+1);
+            }
+        }
+    }
+    return dp[0]==INT_MAX?-1:dp[0];
+}
+
+
+
 int main() {
 //    fibonacci();
 //    uniquePaths();

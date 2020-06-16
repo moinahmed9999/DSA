@@ -346,6 +346,30 @@ int cheapestFlightWithinKStops(int n, vector<vector<int>>& flights, int src, int
     return minCost==INT_MAX?-1:minCost;
 }
 
+// LC 1092 - Flower Planting With No Adjacent
+vector<int> gardenNoAdj(int N, vector<vector<int>>& paths) {
+    vector<vector<int>> graph(N, vector<int>());
+    vector<int> color(N); // color of each garden
+    for(vector<int> path: paths) {
+        graph[path[0]-1].push_back(path[1]-1);
+        graph[path[1]-1].push_back(path[0]-1);
+    }
+    for(int i=0;i<N;i++) {
+        vector<int> unavailableColors(4, 0);
+        for(int v: graph[i]) {
+            if(color[v]!=0/*it has been assigned a color, means unavailable*/) {
+                unavailableColors[color[v]-1]=1;
+            }
+        }
+        for(int j=1;j<=4;j++) {
+            if(unavailableColors[j-1]==0/*available color*/) {
+                color[i]=j;
+            }
+        }
+    }
+    return color;
+}
+
 int main() {
     addEdge(0, 1, 10);
     addEdge(0, 3, 10);
