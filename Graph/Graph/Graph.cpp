@@ -108,6 +108,7 @@ bool hasPath(int source,int destination,vector<bool> &visited, string ans) {
             res= res || hasPath(e->v, destination, visited, ans + to_string(source) + " " );
         }
     }
+    visited[source]=false;
     return res;
 }
 
