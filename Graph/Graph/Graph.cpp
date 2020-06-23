@@ -25,16 +25,13 @@ public:
     }
 };
 
-int n=10;
-vector<vector<Edge*>> graph(n,vector<Edge*>());
-
-void addEdge(int u,int v,int w) {
+void addEdge(int u,int v,int w, vector<vector<Edge*>>& graph) {
     graph[u].push_back(new Edge(v,w));
     graph[v].push_back(new Edge(u,w));
 }
 
-void display() {
-    for (int i=0; i<n; i++) {
+void display(vector<vector<Edge*>>& graph) {
+    for (int i=0; i<graph.size(); i++) {
         cout<<i<<" -> ";
         for (Edge* e : graph[i]) {
             cout<<"("<<e->v<<","<<e->w<<") ";
@@ -43,7 +40,7 @@ void display() {
     }
 }
 
-int searchVertex(int u, int v) {
+int searchVertex(int u, int v, vector<vector<Edge*>>& graph) {
     int idx=-1;
     for (int i=0; i<graph[u].size(); i++) {
         if (graph[u][i]->v==v) {
@@ -54,7 +51,7 @@ int searchVertex(int u, int v) {
     return idx;
 }
 
-void removeEdge(int u,int v) {
+void removeEdge(int u,int v, vector<vector<Edge*>>& graph) {
     for (int i=0; i<graph[u].size(); i++) {
         if (graph[u][i]->v==v) {
             graph[u].erase(graph[u].begin() + i);
@@ -69,7 +66,7 @@ void removeEdge(int u,int v) {
     }
 }
 
-void removeVertex_01(int v) {
+void removeVertex_01(int v, vector<vector<Edge*>>& graph) {
     vector<int> edges;
     for (int i=0; i<graph[v].size(); i++) {
         edges.push_back(graph[v][i]->v);
@@ -88,15 +85,15 @@ void removeVertex_01(int v) {
     }
 }
 
-void removeVertex_02(int u) {
+void removeVertex_02(int u, vector<vector<Edge*>>& graph) {
     for (int i=(int)graph[u].size() -1; i>=0; i--) {
         int v=graph[u][i]->v;
-        removeEdge(u, v);
+        removeEdge(u, v, graph);
     }
 }
 
 //  DFS
-bool hasPath(int source,int destination,vector<bool> &visited, string ans) {
+bool hasPath(int source,int destination, vector<vector<Edge*>>& graph, vector<bool> &visited, string ans) {
     if (source==destination) {
         cout<<ans + to_string(destination) + " " << "\n";
         return true;
@@ -105,14 +102,14 @@ bool hasPath(int source,int destination,vector<bool> &visited, string ans) {
     bool res=false;
     for (Edge* e : graph[source]) {
         if (!visited[e->v]) {
-            res= res || hasPath(e->v, destination, visited, ans + to_string(source) + " " );
+            res= res || hasPath(e->v, destination, graph, visited, ans + to_string(source) + " " );
         }
     }
     visited[source]=false;
     return res;
 }
 
-int allPath(int source,int destination,vector<bool> &visited, string ans) {
+int allPath(int source,int destination, vector<vector<Edge*>>& graph, vector<bool> &visited, string ans) {
     if (source==destination) {
         cout<<ans + to_string(destination) + " " << "\n";
         return 1;
@@ -121,16 +118,16 @@ int allPath(int source,int destination,vector<bool> &visited, string ans) {
     int count=0;
     for (Edge* e : graph[source]) {
         if (!visited[e->v]) {
-            count += allPath(e->v, destination, visited, ans + to_string(source) + " " );
+            count += allPath(e->v, destination, graph, visited, ans + to_string(source) + " " );
         }
     }
     visited[source]=false;
     return count;
 }
 
-void hamiltonianPath(int src, int osrc, vector<bool> &visited, int count, string ans) {
-    if (count==n-1) {
-        int vIdx=searchVertex(src, osrc);
+void hamiltonianPath(int src, int osrc, vector<vector<Edge*>>& graph, vector<bool> &visited, int count, string ans) {
+    if (count==graph.size()-1) {
+        int vIdx=searchVertex(src, osrc, graph);
         if (vIdx!=-1) {
             cout<<"Cycle : " + ans + " " + to_string(src)<< "\n";
         } else {
@@ -140,18 +137,18 @@ void hamiltonianPath(int src, int osrc, vector<bool> &visited, int count, string
     visited[src]=true;
     for (Edge* e : graph[src]) {
         if (!visited[e->v]) {
-            hamiltonianPath(e->v, osrc, visited, count + 1, ans + " " + to_string(src));
+            hamiltonianPath(e->v, osrc, graph, visited, count + 1, ans + " " + to_string(src));
         }
     }
     visited[src]=false;
 }
 
-void dfs(int u,vector<bool> &visited) {
+void dfs(int u,vector<bool> &visited, vector<vector<Edge*>>& graph) {
     visited[u]=true;
     cout<<u<<" ";
     for (Edge* e : graph[u]) {
         if (!visited[e->v]) {
-            dfs(e->v, visited);
+            dfs(e->v, visited, graph);
         }
     }
 }
@@ -215,7 +212,7 @@ void surroundedRegions(vector<vector<char>> &board) {
 }
 
 //  BFS
-void hasCycle(int src, vector<bool> &visited) {
+void hasCycle(int src, vector<bool> &visited, vector<vector<Edge*>>& graph) {
     queue<int> q;
     q.push(src);
     while (q.size()!=0) {
@@ -237,7 +234,7 @@ void hasCycle(int src, vector<bool> &visited) {
     }
 }
 
-void bfs(int src, vector<bool> &visited) {
+void bfs(int src, vector<bool> &visited, vector<vector<Edge*>>& graph) {
     queue<int> q;
     visited[src]=true;
     cout<<src<<" ";
@@ -259,19 +256,19 @@ void bfs(int src, vector<bool> &visited) {
     cout<<"\n";
 }
 
-void gcc() {
-    vector<bool> visited(n,false);
+void gcc(vector<vector<Edge*>>& graph) {
+    vector<bool> visited(graph.size(),false);
     int count=0;
-    for (int i=0; i<n; i++) {
+    for (int i=0; i<graph.size(); i++) {
         if (!visited[i]) {
-            bfs(i, visited);
+            bfs(i, visited, graph);
             count++;
         }
     }
     cout<<"GCC : "<<count<<"\n";
 }
 
-bool isBipartite(int u, vector<int>& visited) {
+bool isBipartite(int u, vector<int>& visited, vector<vector<Edge*>>& graph) {
     queue<pair<int, int>> q;
     q.push({u,0});
     while (q.size()!=0) {
@@ -294,11 +291,11 @@ bool isBipartite(int u, vector<int>& visited) {
     return true;
 }
 
-void bipartite() {
-    vector<int> visited(n,-1);
-    for (int i=0; i<n; i++) {
+void bipartite(vector<vector<Edge*>>& graph) {
+    vector<int> visited(graph.size(),-1);
+    for (int i=0; i<graph.size(); i++) {
         if (visited[i]==-1) {
-            bool res=isBipartite(i, visited);
+            bool res=isBipartite(i, visited, graph);
             if (!res) {
                 cout<<(boolalpha)<<false<<"\n";
             }
@@ -371,31 +368,249 @@ vector<int> gardenNoAdj(int N, vector<vector<int>>& paths) {
     return color;
 }
 
+// LC 815 - Bus Routes
+int busRoutes(vector<vector<int>>& routes, int S, int T) {
+    unordered_map<int, vector<int>> stops;
+    for (int i = 0; i < routes.size(); i++) {
+        for (auto n : routes[i]) stops[n].push_back(i);
+    }
+    int ans = 0;
+    queue<int> que;
+    que.push(S);
+    set<int> visitedStop, visitedBus;
+    while (!que.empty()) {
+        int size = (int) que.size();
+        set<int> tmp;
+        while (size--) {
+            int cur = que.front();
+            que.pop();
+            if (cur == T) return ans;
+            if (visitedStop.count(cur)) continue;
+            visitedStop.emplace(cur);
+            for (auto bus : stops[cur]) {
+                if (visitedBus.count(bus)) continue;
+                visitedBus.emplace(bus);
+                for (auto stop : routes[bus])
+                    tmp.emplace(stop);
+            }
+        }
+        for (auto s : tmp) que.push(s);
+        ans++;
+    }
+    return -1;
+}
+
+// LC 994 - Rotting Oranges
+int orangesRotting(vector<vector<int>>& grid) {
+    int n=(int) grid.size();
+    if(n==0) return -1;
+    int m=(int) grid[0].size();
+    int ans=-1, count=0;
+    queue<vector<int>> q;
+    for(int i=0;i<n;i++) {
+        for(int j=0;j<m;j++) {
+            if(grid[i][j]==2) q.push({i,j});
+            else if(grid[i][j]==1) count++;
+        }
+    }
+    if(count==0) return 0;
+    while(!q.empty()) {
+        int size=(int) q.size(), flag=0;
+        while(size--) {
+            vector<int> front=q.front();
+            int x=front[0], y=front[1];
+            q.pop();
+            if(x-1>=0 && grid[x-1][y]==1) {
+                grid[x-1][y]=2;
+                q.push({x-1, y});
+                flag++;
+                count--;
+            }
+            if(x+1<n && grid[x+1][y]==1) {
+                grid[x+1][y]=2;
+                q.push({x+1, y});
+                flag++;
+                count--;
+            }
+            if(y-1>=0 && grid[x][y-1]==1) {
+                grid[x][y-1]=2;
+                q.push({x, y-1});
+                flag++;
+                count--;
+            }
+            if(y+1<m && grid[x][y+1]==1) {
+                grid[x][y+1]=2;
+                q.push({x, y+1});
+                flag++;
+                count--;
+            }
+        }
+        if(flag>0) ans=ans==-1?1:ans+1;
+    }
+    return ans==-1 || count!=0?-1: ans;
+}
+
+// LC 127 - Word Ladder
+int wordLadder(string beginWord, string endWord, vector<string>& wordList) {
+    unordered_map<string, vector<string>> map;
+    unordered_map<string, bool> visited;
+    bool flag=false;
+    for(string word: wordList) {
+        if(word==endWord) flag=true;
+        for(int i=0;i<word.size();i++) {
+            string newWord=word.substr(0,i) + '*' + word.substr(i+1);
+            map[newWord].push_back(word);
+            visited[newWord]=false;
+        }
+    }
+    if(!flag)  return 0;
+    flag=false;
+    int level=1;
+    queue<string> q;
+    q.push(beginWord);
+    while(!q.empty()) {
+        int size=(int) q.size();
+        while(size--) {
+            string currWord=q.front();
+            q.pop();
+            if(currWord==endWord) {
+                flag=true;
+                break;
+            }
+            for(int i=0;i<currWord.size();i++) {
+                string newWord=currWord.substr(0,i)+'*'+currWord.substr(i+1);
+                if(!visited[newWord]) {
+                    visited[newWord]=true;
+                    for(string word: map[newWord]) {
+                        if(word!=currWord) {
+                            q.push(word);
+                        }
+                    }
+                }
+            }
+        }
+        if(flag) break;
+        level++;
+    }
+    if(flag) return level;
+    return 0;
+}
+
+// LC 433 - Minimum Genetic Mutation
+int minGeneticMutation(string start, string end, vector<string>& bank) {
+    unordered_map<string, vector<string>> map;
+    unordered_map<string, bool> visited;
+    bool flag=false;
+    for(string gene: bank) {
+        if(gene==end) flag=true;
+        for(int i=0;i<gene.size();i++) {
+            string newGene=gene.substr(0,i) + '*' + gene.substr(i+1);
+            map[newGene].push_back(gene);
+            visited[newGene]=false;
+        }
+    }
+    if(!flag)  return -1;
+    flag=false;
+    int level=0;
+    queue<string> q;
+    q.push(start);
+    while(!q.empty()) {
+        int size=(int) q.size();
+        while(size--) {
+            string currGene=q.front();
+            q.pop();
+            if(currGene==end) {
+                flag=true;
+                break;
+            }
+            for(int i=0;i<currGene.size();i++) {
+                string newGene=currGene.substr(0,i)+'*'+currGene.substr(i+1);
+                if(!visited[newGene]) {
+                    visited[newGene]=true;
+                    for(string gene: map[newGene]) {
+                        if(gene!=currGene) {
+                            q.push(gene);
+                        }
+                    }
+                }
+            }
+        }
+        if(flag) break;
+        level++;
+    }
+    if(flag) return level;
+    return -1;
+}
+
+// LC 854 - K-Similar Strings
+int kSimilarStrings(string A, string B) {
+    int n=(int) A.size();
+    if(n==0) return 0;
+    if(A==B) return 0;
+    unordered_set<string> visited;
+    queue<string> q;
+    int level=0;
+    bool flag=false;
+    q.push(B);
+    visited.insert(B);
+    while(!q.empty()) {
+        int size=(int) q.size();
+        while(size--) {
+            string b=q.front();
+            q.pop();
+            if(b==A) {
+                flag=true;
+                break;
+            }
+            // finding possible swaps starting with first unmatched character
+            int i=0;
+            while(A[i]==b[i]) i++;
+            for(int j=i+1;j<n;j++) {
+                if(b[j]==A[i]) {
+                    swap(b[i], b[j]);
+                    if(visited.find(b)==visited.end()) {
+                        q.push(b);
+                        visited.insert(b);
+                    }
+                    swap(b[i], b[j]);
+                }
+            }
+        }
+        if(flag) break;
+        level++;
+    }
+    return level;
+}
+
 int main() {
-    addEdge(0, 1, 10);
-    addEdge(0, 3, 10);
-    addEdge(2, 1, 10);
-    addEdge(3, 2, 10);
-    addEdge(3, 4, 10);
-    addEdge(4, 5, 10);
-    addEdge(4, 6, 10);
-    addEdge(5, 6, 10);
-    addEdge(7, 8, 10);
-    addEdge(8, 9, 10);
-//    display();
+    int n=4;
+    vector<vector<Edge*>> graph(n,vector<Edge*>());
+    addEdge(0, 1, 10, graph);
+    addEdge(0, 2, 10, graph);
+    addEdge(0, 3, 10, graph);
+    addEdge(2, 1, 10, graph);
+    addEdge(3, 1, 10, graph);
+    addEdge(3, 2, 10, graph);
+//    addEdge(3, 4, 10, graph);
+//    addEdge(4, 5, 10, graph);
+//    addEdge(3, 6, 10, graph);
+//    addEdge(5, 6, 10, graph);
+//    addEdge(7, 6, 10, graph);
+//    addEdge(8, 9, 10, graph);
+//    display(graph);
     vector<bool> visited(n,false);
-//    hasPath(0, 6, visited, "");
-//    hamiltonianPath(0, 0, visited, 0, "");
-//    dfs(0, visited);
+//    hasPath(0, 6, graph, visited, "");
+    hamiltonianPath(0, 0, graph, visited, 0, "");
+//    dfs(0, visited, graph);
 //    vector<vector<char>> board={
 //        {'X','X','X','X'},
 //        {'X','O','O','X'},
 //        {'X','X','O','X'},
 //        {'X','O','X','X'}   };
 //    surroundedRegions(board);
-//    hasCycle(0, visited);
-//    bfs(0, visited);
-//    gcc();
-    bipartite();
+//    hasCycle(0, visited, graph);
+//    bfs(0, visited, graph);
+//    gcc(graph);
+//    bipartite(graph);
     return 0;
 }

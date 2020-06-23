@@ -1841,7 +1841,22 @@ int minimumNoOfJumps(vector<int>& nums) {
     return dp[0]==INT_MAX?-1:dp[0];
 }
 
-
+// LC 174 - Dungeon Game
+int calculateMinimumHP(vector<vector<int>>& dungeon) {
+    int n=(int) dungeon.size(), m=(int) dungeon[0].size();
+    vector<vector<int>> dp(n, vector<int> (m,1));
+    dp[n-1][m-1]=dungeon[n-1][m-1]>0?1:1-dungeon[n-1][m-1];
+    for(int i=n-1;i>=0;i--) {
+        for(int j=m-1;j>=0;j--) {
+            if(i==n-1 && j==m-1) continue;
+            int minHP=INT_MAX;
+            if(j+1<m) minHP=min(minHP, dp[i][j+1]);
+            if(i+1<n) minHP=min(minHP, dp[i+1][j]);
+            dp[i][j]=minHP-dungeon[i][j]<=0?1:minHP-dungeon[i][j];
+        }
+    }
+    return dp[0][0];
+}
 
 int main() {
 //    fibonacci();

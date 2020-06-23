@@ -9,10 +9,8 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-int n=8;
-vector<vector<int>> graph(n,vector<int> ());
-
-void display() {
+void display(vector<vector<int>>& graph) {
+    int n=(int) graph.size();
     for (int i = 0; i < n; i++) {
         cout << i << " -> ";
         for (int e : graph[i]) {
@@ -25,22 +23,23 @@ void display() {
 
 //  Topological Sort
 
-void dfsTopologicalSort_01(int u, vector<bool> &visited, stack<int> &st) {
+void dfsTopologicalSort_01(int u, vector<vector<int>>& graph, vector<bool> &visited, stack<int> &st) {
     visited[u]=true;
     for (int v : graph[u]) {
         if (!visited[v]) {
-            dfsTopologicalSort_01(v, visited, st);
+            dfsTopologicalSort_01(v, graph, visited, st);
         }
     }
     st.push(u);
 }
 
-void topologicalSort_01() {     //  Cannot tell if cycle has occured
+void topologicalSort_01(vector<vector<int>>& graph) {     //  Cannot tell if cycle has occured
+    int n=(int) graph.size();
     vector<bool> visited(n, false);
     stack<int> st;
     for (int i=0; i<n; i++) {
         if (!visited[i]) {
-            dfsTopologicalSort_01(i, visited, st);
+            dfsTopologicalSort_01(i, graph, visited, st);
         }
     }
     while (!st.empty()) {
@@ -49,12 +48,12 @@ void topologicalSort_01() {     //  Cannot tell if cycle has occured
     }
 }
 
-bool dfsTopologicalSort_02(int u,vector<bool> &visited,vector<bool> &cycle,vector<int> &st) {
+bool dfsTopologicalSort_02(int u, vector<vector<int>>& graph, vector<bool> &visited,vector<bool> &cycle,vector<int> &st) {
     visited[u]=cycle[u]=true;
     bool res=false;
     for (int v : graph[u]) {
         if (!visited[v]) {
-            res = dfsTopologicalSort_02(v, visited, cycle,st);
+            res = dfsTopologicalSort_02(v, graph, visited, cycle,st);
         } else if (cycle[v]){
             return true;    //  Cycle detected
         }
@@ -64,14 +63,15 @@ bool dfsTopologicalSort_02(int u,vector<bool> &visited,vector<bool> &cycle,vecto
     return res;
 }
 
-vector<int> topologicalSort_02() {     //  Can tell if cycle has occured using a cycle array
+vector<int> topologicalSort_02(vector<vector<int>>& graph) {     //  Can tell if cycle has occured using a cycle array
+    int n=(int) graph.size();
     vector<bool> visited(n, false);
     vector<bool> cycle(n, false);
     vector<int> st;
     bool res=false;
     for (int i=0; i<n && !res; i++) {
         if (!visited[i]) {
-            res = res || dfsTopologicalSort_02(i, visited, cycle, st);
+            res = res || dfsTopologicalSort_02(i, graph, visited, cycle, st);
         }
     }
     if (res) {
@@ -84,7 +84,8 @@ vector<int> topologicalSort_02() {     //  Can tell if cycle has occured using a
     return st;
 }
 
-bool dfsTopologicalSort_03(int u,vector<int> &visited,vector<int> &st) {
+bool dfsTopologicalSort_03(int u, vector<vector<int>>& graph, vector<int> &visited,vector<int> &st) {
+    // 0 means not visited, 1 means not completely visited and 2 means completely visited
     if (visited[u]==1) {
         return true;
     } else if (visited[u]==2) {
@@ -93,21 +94,22 @@ bool dfsTopologicalSort_03(int u,vector<int> &visited,vector<int> &st) {
     visited[u]=1;
     bool res=false;
     for (int v : graph[u]) {
-        res = res || dfsTopologicalSort_03(v, visited, st);
+        res = res || dfsTopologicalSort_03(v, graph, visited, st);
     }
-    visited[u]=2;
+    visited[u]=2;   // all neighbours of u are visited
     st.push_back(u);
     return res;
 }
 
-vector<int> topologicalSort_03() {
+vector<int> topologicalSort_03(vector<vector<int>>& graph) {
     //  Can tell if cycle has occured using a int visited array
+    int n=(int) graph.size();
     vector<int> visited(n, 0);
     vector<int> st;
     bool res=false;
     for (int i=0; i<n && !res; i++) {
         if (!visited[i]) {
-            res = dfsTopologicalSort_03(i, visited, st);
+            res = dfsTopologicalSort_03(i, graph, visited, st);
         }
     }
     if (res) {
@@ -120,7 +122,8 @@ vector<int> topologicalSort_03() {
     return st;
 }
 
-void topologicalSortKhansAlgo() {
+void topologicalSortKhansAlgo(vector<vector<int>>& graph) {
+    int n=(int) graph.size();
     vector<int> incidentEdges(n,0);
     for (int i=0; i<n; i++) {
         for (int v : graph[i]) {
@@ -156,6 +159,8 @@ void topologicalSortKhansAlgo() {
 
 
 int main() {
+    int n=8;
+    vector<vector<int>> graph(n,vector<int> ());
     graph[0].push_back(1);
     graph[0].push_back(6);
     graph[1].push_back(2);
@@ -165,9 +170,9 @@ int main() {
     graph[7].push_back(4);
     graph[7].push_back(6);
     
-//    topologicalSort_01();
-//    topologicalSort_02();
-//    topologicalSort_03();
-//    topologicalSortKhansAlgo();
+//    topologicalSort_01(graph);
+//    topologicalSort_02(graph);
+//    topologicalSort_03(graph);
+//    topologicalSortKhansAlgo(graph);
     return 0;
 }

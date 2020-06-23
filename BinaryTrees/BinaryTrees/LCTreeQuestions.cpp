@@ -154,3 +154,14 @@ int sumOfLeftLeaves(TreeNode* root) {
     if(!root) return 0;
     return sumOfLeftLeaves(root->left, true) + sumOfLeftLeaves(root->right, false);
 }
+
+// LC 222 - Count Complete Tree Nodes
+int height(TreeNode* root) {
+    return root==NULL ?-1:1+height(root->left);
+}
+
+int countCompleteTreeNodes(TreeNode* root) {
+    int h=height(root);
+    return h<0 ? 0 : height(root->right) == h-1 ? (1<<h) + countCompleteTreeNodes(root->right)
+    : (1<<(h-1)) + countCompleteTreeNodes(root->left);
+}

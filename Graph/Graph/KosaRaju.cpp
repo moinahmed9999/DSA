@@ -13,8 +13,13 @@ using namespace std;
 int n;
 vector<vector<int>> graph(n, vector<int>());
 
-void dfs(vector<vector<int>> graph,int src, vector<bool>,vector<int> ans) {
-    
+void dfs(vector<vector<int>> graph,int src, vector<bool>& visited,vector<int>& ans) {
+    visited[src] = true;
+    for (int v : graph[src]) {
+        if (!visited[v])
+            dfs(graph, v, visited, ans);
+    }
+    ans.push_back(src);
 }
 
 void kosaRajuAlgo() {
