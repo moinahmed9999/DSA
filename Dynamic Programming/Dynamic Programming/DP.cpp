@@ -1858,6 +1858,18 @@ int calculateMinimumHP(vector<vector<int>>& dungeon) {
     return dp[0][0];
 }
 
+// LC 96 - Unique Binary Search Trees
+int uniqueBST(int n) {
+    vector<int> dp(n+1, 0);
+    dp[0]=dp[1]=1;
+    for(int i=2;i<=n;i++) {         // n=i
+        for(int j=1;j<=i;j++) {     // select jth no as root
+            dp[i]+=dp[j-1]*dp[i-j];
+        }
+    }
+    return dp[n];
+}
+
 int main() {
 //    fibonacci();
 //    uniquePaths();

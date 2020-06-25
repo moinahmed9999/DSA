@@ -149,6 +149,178 @@ vector<vector<string>> accountsMerge(vector<vector<string>>& accounts) {
     return res;
 }
 
+// LC 839 - Similar String Groups
+int find(int i, vector<int>& parents) {
+    if (i!=parents[i])
+        parents[i]=find(parents[i], parents);
+    return parents[i];
+}
+
+void join(int i, int j, vector<int>& parents, vector<int>& size, int& count) {
+    int p1=find(i, parents), p2=find(j, parents);
+    if(p1==p2) return ;
+    count--;
+    if (size[i]<size[j]) {
+        parents[p1]=p2;
+        size[j]+=size[i];
+    } else {
+        parents[p2]=p1;
+        size[i]+=size[j];
+    }
+}
+
+bool similar(string &a, string &b) {
+    int differentChar = 0;
+    for (int i = 0; i < a.size(); i++)
+        if (a[i] != b[i] && ++differentChar > 2)
+            return false;
+    return true;
+}
+
+int numSimilarGroups(vector<string>& A) {
+    int n=(int) A.size();
+    vector<int> parents(n), size(n, 1);
+    for(int i=0;i<n;i++) parents[i]=i;
+    int count=n;
+    for (int i=0;i<n;i++)
+        for (int j=i+1;j<n;j++)
+            if (similar(A[i], A[j]))
+                join(i, j, parents, size, count);
+    return count;
+}
+
+// LC 959 - Regions Cut By Slashes
+void join(int x, int y, vector<int>& parents, int& count) {
+    int p1=find(x, parents), p2=find(y, parents);
+    if (p1!=p2) {
+        parents[p1]=p2;
+        count--;
+    }
+}
+
+int get(int i, int j, int k, int n) {
+    return ((i*n)+j)*4 + k;
+}
+
+int regionsBySlashes(vector<string>& grid) {
+    int n=(int) grid.size();
+    int N= n*n*4, count=N;
+    vector<int> parents(N);
+    for (int i=0;i<N;i++) parents[i]=i;
+    for (int i=0;i<n;i++) {
+        for (int j=0;j<n;j++) {
+            if(i-1>=0) join(get(i,j,0,n), get(i-1,j,3,n), parents, count);
+            if(j-1>=0) join(get(i,j,1,n), get(i,j-1,2,n), parents, count);
+            if(j+1<n) join(get(i,j,2,n), get(i,j+1,1,n), parents, count);
+            if(i+1<n) join(get(i,j,3,n), get(i+1,j,0,n), parents, count);
+            if (grid[i][j]!='\\') {
+                join(get(i,j,0,n), get(i,j,1,n), parents, count);
+                join(get(i,j,2,n), get(i,j,3,n), parents, count);
+            }
+            if (grid[i][j]!='/') {
+                join(get(i,j,0,n), get(i,j,2,n), parents, count);
+                join(get(i,j,1,n), get(i,j,3,n), parents, count);
+            }
+        }
+    }
+    return count;
+}
+
+// LC 1319 - Number of Operations to Make Network Connected
+int makeConnected(int n, vector<vector<int>>& connections) {
+    if (n==1) return 0;
+    vector<int> parent(n, 0);
+    iota(parent.begin(), parent.end(), 0);
+    int duplicate = 0;
+    for (vector<int>& connection : connections) {
+        int pu=find(connection[0], parent);
+        int pv=find(connection[1], parent);
+        if (pu!=pv) parent[pu]=pv;
+        else duplicate++;
+    }
+    int components=0;
+    for (int i=0;i<n;i++)
+        if (i==parent[i]) components++;
+    return components-1>duplicate? -1 : components- 1;
+}
+
+// LC 924 - Minimize Malware Spread
+int minMalwareSpread(vector<vector<int>> &graph, vector<int> &initial) {
+    int n =(int) graph.size();
+    vector<int> parents(n);
+    for (int i = 0; i < n; i++) parents[i]=i;
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++)
+            if (i != j && graph[i][j] == 1)
+                parents[find(i, parents)] = find(j, parents);
+    
+    vector<int> IPC(n, 0); //infected patient count
+    vector<int> POC(n, 0); //population of country
+    
+    sort(initial.begin(), initial.end());
+    int ans = initial[0];
+    for (int patient : initial) IPC[find(patient, parents)]++;
+    for (int i = 0; i < n; i++) POC[find(i, parents)]++;
+    
+    int maxPopulation = 0;
+    for (int patient : initial) {
+        if (IPC[parents[patient]] == 1 &&
+            POC[parents[patient]] > maxPopulation) {
+            maxPopulation = POC[parents[patient]];
+            ans = patient;
+        }
+    }
+    
+    return ans;
+}
+
+// LC 928 - Minimize Malware Spread II
+void join(int u, int v, vector<int>& parents, vector<int>& size) {
+    int p1=find(u, parents), p2=find(v, parents);
+    if(p1==p2) return;
+    if(size[u]<size[v]) {
+        parents[p1]=p2;
+        size[v]+=size[u];
+    } else {
+        parents[p2]=p1;
+        size[u]+=size[v];
+    }
+}
+
+int minMalwareSpreadII(vector<vector<int>>& graph, vector<int>& initial) {
+    int n=(int) graph.size();
+    vector<int> parents(n), size(n,1), uninfected(n,1);
+    vector<int> infectedNeighbour(n, 0);
+    iota(parents.begin(), parents.end(), 0);
+    for(int i: initial) uninfected[i]=0; // infected
+    for(int i=0;i<n;i++) if(uninfected[i])
+        for(int j=0;j<n;j++) if(uninfected[j])
+            if(graph[i][j])
+                join(i,j,parents,size);
+    // map of infected->{uninfected neighbours's parent}
+    unordered_map<int, unordered_set<int>> map;
+    for(int i: initial) {
+        for(int j=0;j<n;j++) if(uninfected[j])
+            if(graph[i][j])
+                map[i].insert(find(j, parents));
+        for(int k: map[i])
+            infectedNeighbour[k]++;
+    }
+    int ans=-1, maxSize=-1;
+    // find a dsu component with only one infected neighbour
+    for(pair<int, unordered_set<int>> p: map) {
+        int countSize=0;
+        for(int i: p.second)
+            if(infectedNeighbour[i]==1)
+                countSize+=size[i];// size of that component
+        if(countSize> maxSize || (countSize==maxSize && p.first<ans)) {
+            ans=p.first;
+            maxSize=countSize;
+        }
+    }
+    return ans;
+}
+
 int main()
 {
 //    string A="parker",B="morris",S="parser";
