@@ -321,6 +321,23 @@ int minMalwareSpreadII(vector<vector<int>>& graph, vector<int>& initial) {
     return ans;
 }
 
+// HackerRank - Journey to the Moon
+int journeyToMoon(int n, vector<vector<int>> astronaut) {
+    vector<int> parents(n), size(n, 1);
+    iota(parents.begin(), parents.end(), 0);
+    for(vector<int>& pair: astronaut) {
+        join(pair[0], pair[1], parents, size);
+    }
+    int sum=0, ans=0;
+    unordered_set<int> set;
+    for(int i=0;i<n;i++) set.insert(find(i, parents));
+    for(int i: set) {
+        ans+=size[i]*sum;
+        sum+=size[i];
+    }
+    return ans;
+}
+
 int main()
 {
 //    string A="parker",B="morris",S="parser";

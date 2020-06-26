@@ -165,3 +165,17 @@ int countCompleteTreeNodes(TreeNode* root) {
     return h<0 ? 0 : height(root->right) == h-1 ? (1<<h) + countCompleteTreeNodes(root->right)
     : (1<<(h-1)) + countCompleteTreeNodes(root->left);
 }
+
+// LC 129 - Sum Root to Leaf Numbers
+int sumNumbers(TreeNode* root, int sum) {
+    if(!root) return 0;
+    int currSum = (10*sum) + root->val;
+    if(!root->left &&  !root->right) return currSum;
+    return sumNumbers(root->left, currSum) + sumNumbers(root->right, currSum);
+}
+
+int sumNumbers(TreeNode* root) {
+    if(!root) return 0;
+    if(!root->left &&  !root->right) return root->val;
+    return sumNumbers(root->left, root->val) + sumNumbers(root->right, root->val);
+}
