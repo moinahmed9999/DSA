@@ -160,12 +160,12 @@ void join(int i, int j, vector<int>& parents, vector<int>& size, int& count) {
     int p1=find(i, parents), p2=find(j, parents);
     if(p1==p2) return ;
     count--;
-    if (size[i]<size[j]) {
+    if (size[p1]<size[p2]) {
         parents[p1]=p2;
-        size[j]+=size[i];
+        size[p2]+=size[p1];
     } else {
         parents[p2]=p1;
-        size[i]+=size[j];
+        size[p1]+=size[p2];
     }
 }
 
@@ -278,12 +278,12 @@ int minMalwareSpread(vector<vector<int>> &graph, vector<int> &initial) {
 void join(int u, int v, vector<int>& parents, vector<int>& size) {
     int p1=find(u, parents), p2=find(v, parents);
     if(p1==p2) return;
-    if(size[u]<size[v]) {
+    if(size[p1]<size[p2]) {
         parents[p1]=p2;
-        size[v]+=size[u];
+        size[p2]+=size[p1];
     } else {
         parents[p2]=p1;
-        size[u]+=size[v];
+        size[p1]+=size[p2];
     }
 }
 
@@ -335,6 +335,25 @@ int journeyToMoon(int n, vector<vector<int>> astronaut) {
         ans+=size[i]*sum;
         sum+=size[i];
     }
+    return ans;
+}
+
+// LC 128 - Longest Consecutive Sequence
+int longestConsecutive(vector<int>& nums) {
+    int n=(int) nums.size(), ans=0;
+    vector<int> parents(n), size(n, 1);
+    iota(parents.begin(), parents.end(), 0);
+    unordered_map<int, int> map;
+    for(int i=0;i<n;i++) {
+        if(map.find(nums[i])!=map.end()) continue;
+        map[nums[i]]=i;
+        if(map.find(nums[i]-1)!=map.end())
+            join(i, map[nums[i]-1], parents, size);
+        if(map.find(nums[i]+1)!=map.end())
+            join(i, map[nums[i]+1], parents, size);
+    }
+    for(int i=0;i<n;i++)
+        ans=max(ans, size[i]);
     return ans;
 }
 

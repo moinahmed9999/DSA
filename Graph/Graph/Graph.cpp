@@ -9,6 +9,8 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+typedef pair<int, int> iPair;
+
 //int* fun() {    // Test stack growth direction
 //    int a=10;
 //    int* b=&a;
@@ -582,6 +584,31 @@ int kSimilarStrings(string A, string B) {
     return level;
 }
 
+// LC 743 - Network Delay Time
+int networkDelayTime(vector<vector<int>>& times, int N, int K) {
+    int ans=0, count=0;
+    vector<bool> visited(N, false);
+    vector<vector<iPair>> graph(N, vector<iPair>());
+    for(vector<int>& edge: times)
+        graph[edge[0]-1].push_back(make_pair(edge[1]-1, edge[2]));
+    priority_queue<iPair, vector<iPair>, greater<iPair>> pq;
+    pq.push(make_pair(0, K-1));
+    while(!pq.empty()) {
+        int u=pq.top().second, wsf=pq.top().first;
+        pq.pop();
+        if(visited[u]) continue;
+        visited[u]=true;
+        count++;
+        ans=wsf;
+        for(auto& edge: graph[u]) {
+            if(!visited[edge.first]) {
+                pq.push(make_pair(wsf+edge.second, edge.first));
+            }
+        }
+    }
+    return count==N?ans:-1;
+}
+
 int main() {
     int n=4;
     vector<vector<Edge*>> graph(n,vector<Edge*>());
@@ -614,8 +641,6 @@ int main() {
 //    bipartite(graph);
     return 0;
 }
-// iPair ==> Integer Pair
-typedef pair<int, int> iPair;
 void shortestPath(vector<pair<int,int> > adj[], int V, int src)
 {
     priority_queue< iPair, vector <iPair> , greater<iPair> > pq;
