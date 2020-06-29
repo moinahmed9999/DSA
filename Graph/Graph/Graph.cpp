@@ -609,6 +609,181 @@ int networkDelayTime(vector<vector<int>>& times, int N, int K) {
     return count==N?ans:-1;
 }
 
+// GFG - Mother Vertex
+void dfs(int u, vector<int> g[], vector<bool>& visited) {
+    visited[u]=true;
+    for(int v: g[u]) {
+        if(!visited[v]) {
+            dfs(v, g, visited);
+        }
+    }
+}
+
+int findMother(int V, vector<int> g[]) {
+    // the mother vertex(if it exists) will be the last univisted
+    // vertex and after its dfs all nodes will be marked visited
+    vector<bool> visited(V, false);
+    int u=0;
+    for(int i=0;i<V;i++)
+        if(!visited[i]) {
+            dfs(i, g, visited);
+            u=i;
+        }
+    // reset visited array and check if u is the mother vertex or not
+    for(int i=0;i<V;i++) visited[i]=false;
+    dfs(u, g, visited);
+    for(int i=0;i<V;i++)
+        if(!visited[i]) return -1;
+    return u;
+}
+
+// LC 332 - Reconstruct Itinerary   (Eulerian Path)
+void dfs(string& u, unordered_map<string, priority_queue<string, vector<string>, greater<string>>>& graph, vector<string>& res) {
+    while(!graph[u].empty()) {
+        string v=graph[u].top();
+        graph[u].pop();
+        dfs(v, graph, res);
+    }
+    res.push_back(u);
+}
+
+vector<string> findItinerary(vector<vector<string>>& tickets) {
+    unordered_map<string, priority_queue<string, vector<string>, greater<string>>> graph;
+    vector<string> res;
+    for(auto& ticket: tickets) {
+        graph[ticket[0]].push(ticket[1]);
+    }
+    string u="JFK";
+    dfs(u, graph, res);
+    reverse(res.begin(), res.end());
+    return res;
+}
+
+// LC 694 - Number of Distinct Islands
+void dfs(int i, int j, int x, int y, vector<vector<int>> &grid, set<int>& island) {
+    // x and y tells the starting point of dfs which we use to shift to top right of grid
+    // so that we can put the dfs in the set
+    int n=(int) grid.size(), m=(int) grid[0].size();
+    grid[i][j]=-1;
+    if(i+1<n && grid[i+1][j]==1) dfs(i+1, j, x, y, grid, island);
+    if(i-1>=0 && grid[i-1][j]==1) dfs(i-1, j, x, y, grid, island);
+    if(j+1<m && grid[i][j+1]==1) dfs(i, j+1, x, y, grid, island);
+    if(j-1>=0 && grid[i][j-1]==1) dfs(i, j-1, x, y, grid, island);
+    i-=x;
+    j-=y;
+    island.insert((m*i)+j);
+}
+
+int numberofDistinctIslands(vector<vector<int>> &grid) {
+    int n=(int) grid.size();
+    if(n==0) return 0;
+    int m=(int) grid[0].size();
+    set<set<int>> islands;
+    for(int i=0;i<n;i++)
+        for(int j=0;j<m;j++) if(grid[i][j]==1) {
+                set<int> island;
+                dfs(i, j, i, j, grid, island);
+                islands.insert(island);
+            }
+    return (int) islands.size();
+}
+
+// LC 711 - Number of Distinct Islands II
+void dfs(vector<vector<int>>& grid, int x, int y, vector<pair<int, int>>& island) {
+    if (x < 0 || x >= grid.size() || y < 0 || y >= grid[0].size()) return;
+    if (grid[x][y] == 0) return;
+    grid[x][y] = 0;
+    island.push_back({x, y});
+    dfs(grid, x + 1, y, island);
+    dfs(grid, x - 1, y, island);
+    dfs(grid, x, y + 1, island);
+    dfs(grid, x, y - 1, island);
+}
+
+vector<pair<int, int>> normalize(vector<pair<int, int>>& island) {
+    // possible islands due to rotation and reflection
+    vector<vector<pair<int, int>>> islands(8);
+    for (auto &a : island) {
+        int x = a.first, y = a.second;
+        islands[0].push_back({x, y});
+        islands[1].push_back({x, -y});
+        islands[2].push_back({-x, y});
+        islands[3].push_back({-x, -y});
+        islands[4].push_back({y, x});
+        islands[5].push_back({y, -x});
+        islands[6].push_back({-y, x});
+        islands[7].push_back({-y, -x});
+    }
+    for (auto &a : islands) {
+        sort(a.begin(), a.end());
+        for (int i = (int)island.size() - 1; i >= 0; --i) {
+            a[i].first -= a[0].first;
+            a[i].second -= a[0].second;
+        }
+    }
+    // sort to get the canonical representation
+    sort(islands.begin(), islands.end());
+    return islands[0];
+}
+
+int numDistinctIslands2(vector<vector<int>>& grid) {
+    int n = (int) grid.size(), m = (int) grid[0].size();
+    set<vector<pair<int, int>>> islands;
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < m; ++j) {
+            if (grid[i][j]) {
+                vector<pair<int, int>> island;
+                dfs(grid, i, j, island);
+                islands.insert(normalize(island));
+            }
+        }
+    }
+    return (int) islands.size();
+}
+
+// GFG - Negative Weight Cycle
+bool bellmanFord_HasNegativeWeightCycle(int V, int E, vector<vector<int>>& edges) {
+    bool hasNegativeWeightCycle=false;
+    vector<int> dp(V, INT_MAX);
+    dp[edges[0][0]]=0;  // taking first u in edges as source
+    for(int i=1;i<=V;i++) {
+        for(vector<int>& edge: edges) {
+            int u=edge[0], v=edge[1], w=edge[2], temp=dp[v];;
+            if(dp[u]==INT_MAX) continue;
+            dp[v]=min(dp[v], dp[u]+w);
+            if(i==V && dp[v]!=temp) hasNegativeWeightCycle=true;
+        }
+    }
+    return hasNegativeWeightCycle;
+}
+
+// GFG - Floyd Warshall Algorithm
+void floydWarshall(vector<vector<int>>& dp) {
+    int V=(int) dp.size();
+    for(int k=0;k<V;k++) {
+        for(int i=0;i<V;i++) {
+            for(int j=0;j<V;j++) {
+                dp[i][j]=min(dp[i][j], dp[i][k]+dp[k][j]);
+            }
+        }
+    }
+}
+
+// GFG - Castle RUN
+bool hasEulerCircuit(vector<vector<int>>& graph){
+    int n=(int) graph.size();
+    vector<int> indegree(n, 0);
+    for(int u=0;u<n;u++) {
+        for(int v: graph[u]) {
+            indegree[v]++;
+        }
+    }
+    for(int i=0;i<n;i++) {
+        if(indegree[i]==0 || indegree[i]%2==1) return false;
+    }
+    return true;
+}
+
 int main() {
     int n=4;
     vector<vector<Edge*>> graph(n,vector<Edge*>());

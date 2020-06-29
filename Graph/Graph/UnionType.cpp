@@ -357,6 +357,90 @@ int longestConsecutive(vector<int>& nums) {
     return ans;
 }
 
+// LC 434 - Number of Islands II
+vector<int> numIslands2(int n, int m, vector<vector<int>> &operators) {
+    int N=n*m, k=(int) operators.size() ,count=0;
+    vector<vector<int>> grid(n, vector<int>(m, 0));
+    vector<int> parents(N, -1), size(N, -1), res(k);
+    for(int i=0;i<k;i++) {
+        int x=operators[i][0], y=operators[i][1];
+        if(grid[x][y]) {
+            res[i]=count;
+            continue;
+        }
+        grid[x][y]=1;
+        count++;
+        int a=(m*x)+y;
+        parents[a]=a;
+        size[a]=1;
+        if(x-1>=0 && grid[x-1][y]==1) {
+            int b=(m*(x-1))+y;
+            join(a, b, parents, size, count);
+        }
+        if(x+1<n && grid[x+1][y]==1) {
+            int b=(m*(x+1))+y;
+            join(a, b, parents, size, count);
+        }
+        if(y-1>=0 && grid[x][y-1]==1) {
+            int b=(m*x)+(y-1);
+            join(a, b, parents, size, count);
+        }
+        if(y+1<m && grid[x][y+1]==1) {
+            int b=(m*x)+(y+1);
+            join(a, b, parents, size, count);
+        }
+        res[i]=count;
+    }
+    return res;
+}
+
+// LC 399 - Evaluate Division
+void add(string& a, unordered_map<string, string>& parents, unordered_map<string, double>& val) {
+    if(parents.find(a)!=parents.end()) return;
+    parents[a]=a;
+    val[a]=1.0;
+}
+
+string find(string& a, unordered_map<string, string>& parents, unordered_map<string, double>& val) {
+    string p=parents[a];
+    if(p!=a) {
+        string pp=find(p, parents, val);
+        val[a]=val[a]*val[p];
+        parents[a]=pp;
+    }
+    return parents[a];
+}
+
+void join(string& a, string& b, double v, unordered_map<string, string>& parents, unordered_map<string, double>& val) {
+    add(a, parents, val);
+    add(b, parents, val);
+    string p1=find(a, parents, val), p2=find(b, parents, val);
+    parents[p1]=p2;
+    val[p1]=v*val[b]/val[a];
+}
+
+vector<double> calcEquation(vector<vector<string>>& equations, vector<double>& values, vector<vector<string>>& queries) {
+    unordered_map<string, string> parents;
+    unordered_map<string, double> val;
+    vector<double> res(queries.size());
+    // for a/b=2.0 , b is parent of a.
+    // if a or b are not present in map already then their val is 1.0;
+    // during join, we find relative value of the members of a component
+    // and during find we put each child with correct parent and on the way
+    // we evaluate the correct val;
+    for(int i=0;i<(int) equations.size();i++) {
+        join(equations[i][0], equations[i][1], values[i], parents, val);
+    }
+    for (int i=0; i<(int) queries.size();i++) {
+        string x=queries[i][0], y=queries[i][1];
+        res[i]=(parents.find(x)!=parents.end() &&
+                parents.find(y)!=parents.end() &&
+                find(x, parents, val)==find(y, parents, val))?
+        (val[x]/val[y]):-1.0;
+    }
+    return res;
+}
+
 int main()
 {
 //    string A="parker",B="morris",S="parser";

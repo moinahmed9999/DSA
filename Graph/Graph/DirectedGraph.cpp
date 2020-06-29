@@ -157,6 +157,36 @@ void topologicalSortKhansAlgo(vector<vector<int>>& graph) {
     }
 }
 
+// LC 1136 - Parallel Courses
+int minimumSemesters(int N, vector<vector<int>>& relations) {
+    int n=(int) relations.size(), semesters=0;
+    vector<vector<int>> graph(n, vector<int>());
+    vector<int> incidentEdges(n,0);
+    for (vector<int>& relation: relations) {
+        int u=relation[0]-1, v=relation[1]-1;
+        graph[u].push_back(v);
+        incidentEdges[v]++;
+    }
+    queue<int> q;
+    for (int i=0; i<n; i++)
+        if (incidentEdges[i]==0) q.push(i);
+    while (q.size()!=0) {
+        int size=(int) q.size();
+        semesters++;
+        while (size--) {
+            int u=q.front();
+            q.pop();
+            for (int v : relations[u]) {
+                if (--incidentEdges[v]==0) {
+                    q.push(v);
+                }
+            }
+        }
+    }
+    for (int i=0; i<n; i++)
+        if (incidentEdges[i]!=0) return -1;
+    return semesters;
+}
 
 int main() {
     int n=8;
