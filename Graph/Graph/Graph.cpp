@@ -346,6 +346,50 @@ int cheapestFlightWithinKStops(int n, vector<vector<int>>& flights, int src, int
     return minCost==INT_MAX?-1:minCost;
 }
 
+int cheapestFlightWithinKStops2(int n, vector<vector<int>>& flights, int src, int dst, int K) {
+    // Dijkstra's Algorithm
+    int ans=0, flag=0;
+    vector<vector<vector<int>>> graph(n, vector<vector<int>>());
+    priority_queue<vector<int>, vector<vector<int>>, greater<vector<int>>> pq;
+    for(vector<int> flight: flights)
+        graph[flight[0]].push_back({flight[1], flight[2]});
+    pq.push({0, src, K+1});
+    while(!pq.empty()) {
+        int size=(int) pq.size();
+        while(size--) {
+            int u=pq.top()[1], wsf=pq.top()[0], stop=pq.top()[2];
+            pq.pop();
+            if(u==dst) {
+                ans=wsf;
+                flag++;
+                break;
+            }
+            if(stop>0) {
+                for(auto& edge: graph[u])
+                    pq.push({wsf+edge[1], edge[0], stop-1});
+            }
+        }
+        if(flag>0) break;
+    }
+    return flag==0?-1:ans;
+}
+
+int cheapestFlightWithinKStops3(int n, vector<vector<int>>& flights, int src, int dst, int K) {
+    // Bellman-Ford Algorithm - Run K+1 times
+    vector<int> dp(n, INT_MAX);
+    dp[src]=0;
+    for(int i=0;i<=K;i++) {
+        vector<int> dp2(dp);
+        for(auto flight: flights) {
+            int u=flight[0], v=flight[1], w=flight[2];
+            if(dp[u]==INT_MAX) continue;
+            dp2[v]=min(dp2[v], dp[u]+w);
+        }
+        dp=dp2;
+    }
+    return dp[dst]==INT_MAX?-1: dp[dst];
+}
+
 // LC 1092 - Flower Planting With No Adjacent
 vector<int> gardenNoAdj(int N, vector<vector<int>>& paths) {
     vector<vector<int>> graph(N, vector<int>());
@@ -584,7 +628,7 @@ int kSimilarStrings(string A, string B) {
     return level;
 }
 
-// LC 743 - Network Delay Time
+// LC 743 - Network Delay Time  (Dijkstra's Algorithm)
 int networkDelayTime(vector<vector<int>>& times, int N, int K) {
     int ans=0, count=0;
     vector<bool> visited(N, false);
@@ -741,14 +785,14 @@ int numDistinctIslands2(vector<vector<int>>& grid) {
     return (int) islands.size();
 }
 
-// GFG - Negative Weight Cycle
+// GFG - Negative Weight Cycle (Bellman-Ford Algorithm)
 bool bellmanFord_HasNegativeWeightCycle(int V, int E, vector<vector<int>>& edges) {
     bool hasNegativeWeightCycle=false;
     vector<int> dp(V, INT_MAX);
     dp[edges[0][0]]=0;  // taking first u in edges as source
     for(int i=1;i<=V;i++) {
         for(vector<int>& edge: edges) {
-            int u=edge[0], v=edge[1], w=edge[2], temp=dp[v];;
+            int u=edge[0], v=edge[1], w=edge[2], temp=dp[v];
             if(dp[u]==INT_MAX) continue;
             dp[v]=min(dp[v], dp[u]+w);
             if(i==V && dp[v]!=temp) hasNegativeWeightCycle=true;
@@ -760,27 +804,21 @@ bool bellmanFord_HasNegativeWeightCycle(int V, int E, vector<vector<int>>& edges
 // GFG - Floyd Warshall Algorithm
 void floydWarshall(vector<vector<int>>& dp) {
     int V=(int) dp.size();
-    for(int k=0;k<V;k++) {
-        for(int i=0;i<V;i++) {
-            for(int j=0;j<V;j++) {
+    for(int k=0;k<V;k++)
+        for(int i=0;i<V;i++)
+            for(int j=0;j<V;j++)
                 dp[i][j]=min(dp[i][j], dp[i][k]+dp[k][j]);
-            }
-        }
-    }
 }
 
 // GFG - Castle RUN
-bool hasEulerCircuit(vector<vector<int>>& graph){
+bool hasEulerCircuit(vector<vector<int>>& graph) {
     int n=(int) graph.size();
     vector<int> indegree(n, 0);
-    for(int u=0;u<n;u++) {
-        for(int v: graph[u]) {
+    for(int u=0;u<n;u++)
+        for(int v: graph[u])
             indegree[v]++;
-        }
-    }
-    for(int i=0;i<n;i++) {
+    for(int i=0;i<n;i++)
         if(indegree[i]==0 || indegree[i]%2==1) return false;
-    }
     return true;
 }
 

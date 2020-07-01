@@ -188,6 +188,33 @@ int minimumSemesters(int N, vector<vector<int>>& relations) {
     return semesters;
 }
 
+// GFG - Shortest path from 1 to n (Shortest Path in Directed Acyclic Graph)
+int shortestPathFrom1ToN(int n) {
+    vector<vector<int>> graph(n, vector<int>());
+    vector<bool> visited(n, false);
+    stack<int> st;
+    for(int i=1;i<=n;i++) {
+        if(i+1<=n)
+            graph[i-1].push_back(i);
+        if(3*i<=n)
+            graph[i-1].push_back((3*i)-1);
+    }
+    for(int i=0;i<n;i++)    // topological sort
+        if(!visited[i])
+            dfsTopologicalSort_01(i, graph, visited, st);
+    vector<int> dp(n, 1e7);
+    dp[0]=0;
+    while(st.size()!=0) {
+        int u=st.top();
+        st.pop();
+        if(dp[u]==1e7) continue;
+        for(int v: graph[u])
+            if(dp[v]>dp[u]+1)
+                dp[v]=dp[u]+1;
+    }
+    return dp[n-1];
+}
+
 int main() {
     int n=8;
     vector<vector<int>> graph(n,vector<int> ());

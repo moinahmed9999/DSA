@@ -6,8 +6,7 @@
 //  Copyright © 2020 Moin Ahmed. All rights reserved.
 //
 
-#include<iostream>
-#include<vector>
+#include<bits/stdc++.h>
 using namespace std;
 
 int n;
@@ -47,4 +46,47 @@ void kosaRajuAlgo() {
             dfs(newGraph, u, visited, scc);
         }
     }
+}
+
+// GFG - Strongly Connected Components (Kosaraju's Algo)
+void dfs(int u, vector<vector<int>>& graph, vector<bool>& visited, stack<int>& st) {
+    // topological sort
+    visited[u]=true;
+    for(int v: graph[u])
+        if(!visited[v])
+            dfs(v, graph, visited, st);
+    st.push(u);
+}
+
+void dfs(int u, vector<vector<int>>& graph, vector<bool>& visited) {
+    visited[u]=true;
+    for(int v: graph[u])
+        if(!visited[v])
+            dfs(v, graph, visited);
+}
+
+int kosaraju(int V, vector<int> adj[]) {
+    int count=0;
+    vector<bool> visited(V, false);
+    vector<vector<int>> graph(V, vector<int>()), reverseGraph(V, vector<int>());
+    stack<int> st;
+    for(int u=0;u<V;u++)
+        for(int v:adj[u])
+            graph[u].push_back(v);
+    for(int u=0;u<V;u++)
+        for(int v:graph[u])
+            reverseGraph[v].push_back(u);
+    for(int i=0;i<V;i++)    // topological sort
+        if(!visited[i])
+            dfs(i, graph, visited, st);
+    for(int i=0;i<V;i++) visited[i]=false;
+    while(st.size()!=0) {
+        int u=st.top();
+        st.pop();
+        if(!visited[u]) {
+            dfs(u, reverseGraph, visited);
+            count++;
+        }
+    }
+    return count;
 }
