@@ -367,6 +367,22 @@ vector<int> exclusiveTime(int n, vector<string>& logs) {
     return time;
 }
 
+// LC 856 - Score of Parentheses
+int scoreOfParentheses(string S) {
+    stack<int> st;
+    st.push(0);
+    for(char c: S) {
+        if(c=='(') st.push(0);
+        else {
+            int a=st.top(); st.pop();
+            int b=st.top(); st.pop();
+            int score_a=max(2*a, 1), score_aplusb=score_a+b;
+            st.push(score_aplusb);
+        }
+    }
+    return st.top();
+}
+
 int main() {
     vector<int> arr={1,-2,3,2,4,2,3,6,7,8};
     nextGreaterOnRight(arr);

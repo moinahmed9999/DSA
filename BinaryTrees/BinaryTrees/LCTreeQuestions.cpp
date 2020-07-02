@@ -179,3 +179,130 @@ int sumNumbers(TreeNode* root) {
     if(!root->left &&  !root->right) return root->val;
     return sumNumbers(root->left, root->val) + sumNumbers(root->right, root->val);
 }
+
+// LC 102 - Binary Tree Level Order Traversal
+vector<vector<int>> levelOrder(TreeNode* root) {
+    vector<vector<int>> ans;
+    if(!root) return ans;
+    queue<TreeNode*> q;
+    q.push(root);
+    while(!q.empty()) {
+        int size=(int) q.size();
+        vector<int> levelOrder;
+        while(size--) {
+            TreeNode* node=q.front();
+            q.pop();
+            levelOrder.push_back(node->val);
+            if(node->left!=NULL) q.push(node->left);
+            if(node->right!=NULL) q.push(node->right);
+        }
+        if(levelOrder.size()!=0) ans.push_back(levelOrder);
+    }
+    return ans;
+}
+
+// LC 107 - Binary Tree Level Order Traversal II
+vector<vector<int>> levelOrderBottom(TreeNode* root) {
+    vector<vector<int>> ans;
+    if(!root) return ans;
+    queue<TreeNode*> q;
+    q.push(root);
+    while(!q.empty()) {
+        int size=(int) q.size();
+        vector<int> levelOrder;
+        while(size--) {
+            TreeNode* node=q.front();
+            q.pop();
+            levelOrder.push_back(node->val);
+            if(node->left!=NULL) q.push(node->left);
+            if(node->right!=NULL) q.push(node->right);
+        }
+        if(levelOrder.size()!=0) ans.push_back(levelOrder);
+    }
+    reverse(ans.begin(), ans.end());
+    return ans;
+}
+
+// LC 637 - Average of Levels in Binary Tree
+vector<double> averageOfLevels(TreeNode* root) {
+    vector<double> ans;
+    if(!root) return ans;
+    queue<TreeNode*> q;
+    q.push(root);
+    while(!q.empty()) {
+        int size=(int) q.size();
+        double levelSum=0;
+        for(int i=0;i<size;i++) {
+            TreeNode* node=q.front();
+            q.pop();
+            levelSum+=node->val;
+            if(node->left!=NULL) q.push(node->left);
+            if(node->right!=NULL) q.push(node->right);
+        }
+        ans.push_back(levelSum/size);
+    }
+    return ans;
+}
+
+// LC 654 - Maximum Binary Tree
+int getMax(vector<int>& nums, int l, int r) {
+    int idx=l;
+    for(int i=l+1;i<=r;i++)
+        if(nums[i]>nums[idx]) idx=i;
+    return idx;
+}
+
+TreeNode* constructMaximumBinaryTree(vector<int>& nums, int l, int r) {
+    if(l>r) return NULL;
+    if(l==r) return new TreeNode(nums[l]);
+    int max=getMax(nums, l, r);
+    TreeNode* root=new TreeNode(nums[max]);
+    root->left=constructMaximumBinaryTree(nums, l, max-1);
+    root->right=constructMaximumBinaryTree(nums, max+1, r);
+    return root;
+}
+
+TreeNode* constructMaximumBinaryTree(vector<int>& nums) {
+    return constructMaximumBinaryTree(nums, 0, (int) nums.size()-1);
+}
+
+// LC 998 - Maximum Binary Tree II
+TreeNode* insertIntoMaxTree(TreeNode* root, int val) {
+    if(root!=NULL && (root->val)>val) {
+        root->right=insertIntoMaxTree(root->right, val);
+        return root;
+    }
+    TreeNode* node=new TreeNode(val);
+    node->left=root;
+    return node;
+}
+
+// LC 285 - Inorder Successor in BST
+TreeNode* inorderSuccessor(TreeNode* root, TreeNode* p) {
+    if(root==NULL) return NULL;
+    if(root->val<=p->val) return inorderSuccessor(root->right, p);
+    TreeNode* successor=inorderSuccessor(root->left, p);
+    return successor==NULL?root: successor;
+}
+
+// LC 510 - Inorder Successor in BST II
+class Node{
+public:
+    int val;
+    Node* left;
+    Node* right;
+    Node* parent;
+};
+
+Node* inorderSuccessor(Node* root) {
+    if(root==NULL) return NULL;
+    Node* node;
+    if (root->right!=NULL) {
+        node=root->right;
+        while (node->left!=NULL) node=node->left;
+    } else {
+        node=root->parent;
+        while (node!=NULL && node->val<root->val) node=node->parent;
+    }
+    return node;
+}
