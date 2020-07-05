@@ -552,6 +552,61 @@ string decodeString(string s) {
     return decoded_string;
 }
 
+// LC 844 - Backspace String Compare
+bool backspaceCompare(string S, string T) {
+    stack<char> st;
+    for(char c: S)
+        if(c!='#') st.push(c);
+        else if(!st.empty()) st.pop();
+    S="";
+    while(!st.empty()) {
+        S+=st.top();
+        st.pop();
+    }
+    for(char c: T)
+        if(c!='#') st.push(c);
+        else if(!st.empty()) st.pop();
+    T="";
+    while(!st.empty()) {
+        T+=st.top();
+        st.pop();
+    }
+    return S==T;
+}
+
+// LC 946 - Validate Stack Sequences
+bool validateStackSequences(vector<int>& pushed, vector<int>& popped) {
+    int n=(int) pushed.size(), i=0, j=0;
+    stack<int> st;
+    for(;i<n;i++) {
+        st.push(pushed[i]);
+        while(!st.empty() && j<n && popped[j]==st.top()) {
+            st.pop();
+            j++;
+        }
+    }
+    return st.size()==0;
+}
+
+// LC 439 - Ternary Expression Parser
+string parseTernary(string expression) {    // check right to left
+    int n=(int) expression.size();
+    stack<char> st;
+    for(int i=n-1;i>=0;i--) {
+        char c=expression[i];
+        if(c!='?' && c!=':') {
+            st.push(c);
+        } else if(c=='?') {
+            char ans1=st.top(); st.pop();
+            char ans2=st.top(); st.pop();
+            char TF=expression[--i];
+            if(TF=='T') st.push(ans1);
+            else st.push(ans2);
+        }
+    }
+    return string(1, st.top());
+}
+
 int main() {
     vector<int> arr={1,-2,3,2,4,2,3,6,7,8};
     nextGreaterOnRight(arr);
