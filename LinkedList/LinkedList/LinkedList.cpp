@@ -12,7 +12,9 @@ using namespace std;
 struct ListNode {
     int val;
     ListNode *next;
+    ListNode() : val(0), next(nullptr) {}
     ListNode(int x) : val(x), next(NULL) {}
+    ListNode(int x, ListNode *next) : val(x), next(next) {}
 };
 
 ListNode* getMid(ListNode* head) {
@@ -156,6 +158,263 @@ ListNode* middleNode(ListNode* head) {
         fast=fast->next->next;
     }
     return slow;
+}
+
+// LC 21 - Merge Two Sorted Lists
+ListNode* mergeTwoLists(ListNode* l1, ListNode* l2) {
+    if(l1==NULL) return l2;
+    if(l2==NULL) return l1;
+    ListNode* head=new ListNode();
+    ListNode *node=head;
+    while(l1!=NULL && l2!=NULL) {
+        if(l1->val<=l2->val) {
+            node->next=l1;
+            l1=l1->next;
+        } else {
+            node->next=l2;
+            l2=l2->next;
+        }
+        node=node->next;
+    }
+    if(l2==NULL) node->next=l1;
+    if(l1==NULL) node->next=l2;
+    return head->next;
+}
+
+// LC 23 - Merge k Sorted Lists
+struct compare {
+    bool operator()(const ListNode* a, const ListNode* b) {
+        return a->val>b->val;
+    }
+};
+
+ListNode* mergeKLists1(vector<ListNode*>& lists) {
+    // Heap - O(Nlogk)
+    priority_queue<ListNode*, vector<ListNode*>, compare> pq;
+    for(ListNode* list: lists) {
+        if(list!=NULL) pq.push(list);
+    }
+    ListNode* head=new ListNode(), *node=head;
+    while(!pq.empty()) {
+        node->next=pq.top();
+        pq.pop();
+        node=node->next;
+        if(node->next!=NULL) pq.push(node->next);
+    }
+    return head->next;
+}
+
+ListNode* mergeKLists2(vector<ListNode*>& lists, int l, int r) {
+    if(l==r) return lists[l];
+    else if(l+1==r)
+        return mergeTwoLists(lists[l], lists[r]);
+    int m=(l+r)/2;
+    ListNode* l1=mergeKLists2(lists, l, m);
+    ListNode* l2=mergeKLists2(lists, m+1, r);
+    return mergeTwoLists(l1, l2);
+}
+
+ListNode* mergeKLists2(vector<ListNode*>& lists) {
+    // Divide and Conquer - O(Nlogk)
+    int k=(int) lists.size();
+    if(k==0) return NULL;
+    if(k==1) return lists[0];
+    return mergeKLists2(lists, 0, k-1);
+}
+
+// LC 83 - Remove Duplicates from Sorted List
+ListNode* deleteDuplicates(ListNode* head) {
+    if(head==NULL) return head;
+    ListNode *node=head->next, *prev=head;
+    while(node!=NULL) {
+        if(prev->val==node->val) {
+            prev->next=node->next;
+            node=prev->next;
+            continue;
+        }
+        node=node->next;
+        prev=prev->next;
+    }
+    return head;
+}
+
+// LC 82 - Remove Duplicates from Sorted List II
+ListNode* deleteDuplicatesII(ListNode* head) {
+    if(head==NULL) return head;
+    ListNode *node=head, *prev=NULL;
+    while(node!=NULL) {
+        if(node->next!=NULL && node->val==node->next->val) {
+            int val=node->val;
+            while(node!=NULL && node->val==val) node=node->next;
+            if(prev!=NULL) prev->next=node;
+            else head=node;
+            continue;
+        }
+        prev=node;
+        node=node->next;
+    }
+    return head;
+}
+
+// LC 92 - Reverse Linked List II
+ListNode* reverseBetween1(ListNode* head, int m, int n) {
+    /*
+     let the list be 10->20->30->40->50->60->70->NULL
+     and m=3 and n=5
+     then prev=20, start=30, end=50 and next=60
+     I) 0(res)->10(head)->20(prev)->NULL , 30(start)->40->50(end)->NULL , 60(next)->70->NULL
+     II) 0(res)->10(head)->20(prev)->NULL , 50(start)->40->30(end)->NULL , 60(next)->70->NULL
+     III) 0(res)->10(head)->20->50->40->30->60->70->NULL
+     */
+    if(head==NULL) return NULL;
+    if(m==n) return head;
+    int len=n-m+1;
+    ListNode *res=new ListNode(0, head), *prev=res, *start, *end, *next;
+    // find prev of the list to be reversed
+    while(m--!=1) prev=prev->next;
+    // start and end of the list to be reversed
+    start=end=prev->next;
+    prev->next=NULL;
+    while(len--!=1) end=end->next;
+    // next of the list to be reversed and detach
+    next=end->next;
+    end->next=NULL;
+    // reverse
+    start=reverseList(start);
+    //find end of reversed list
+    end=start;
+    while(end->next!=NULL) end=end->next;
+    //join two lists
+    prev->next=start;
+    end->next=next;
+    // return ans
+    return res->next;
+}
+
+ListNode* reverseBetween2(ListNode* head, int m, int n) {
+    if(head==NULL) return NULL;
+    if(m==n) return head;
+    int len=n-m+1;
+    ListNode *res=new ListNode(0, head), *beforeStart=res;
+    // find beforeStart of the list to be reversed
+    while(m--!=1) beforeStart=beforeStart->next;
+    // start and end of the list to be reversed and reverse it inplace
+    ListNode *start=beforeStart->next, *prev=start, *curr=start->next;
+    while(len--!=1) {
+        ListNode *next=curr->next;
+        curr->next=prev;
+        prev=curr;
+        curr=next;
+    }
+    // join
+    beforeStart->next=prev;
+    start->next=curr;
+    return res->next;
+}
+
+// LC 24 - Swap Nodes in Pairs
+ListNode* swapPairs(ListNode* head) {
+    if(head==NULL) return head;
+    ListNode *res=new ListNode(0, head), *beforeStart=res, *start=head;
+    while(start!=NULL && start->next!=NULL) {
+        ListNode *curr=start->next, *next=start->next->next;
+        curr->next=start;
+        start->next=next;
+        beforeStart->next=curr;
+        beforeStart=start;
+        start=start->next;
+    }
+    return res->next;
+}
+
+// LC 25 - Reverse Nodes in k-Group
+ListNode* reverseKGroup(ListNode* head, int k) {
+    if(head==NULL || k==1) return head;
+    ListNode *res=new ListNode(0, head), *beforeStart=res, *start=head, *node=head;
+    int size=0;
+    while(node!=NULL) {
+        size++;
+        node=node->next;
+    }
+    size/=k;    // no of times the loop will run
+    while(size--) {
+        ListNode *prev=start, *curr=start->next;
+        for(int i=1;i<k;i++) {
+            ListNode *next=curr->next;
+            curr->next=prev;
+            prev=curr;
+            curr=next;
+        }
+        beforeStart->next=prev;
+        beforeStart=start;
+        start->next=curr;
+        start=curr;
+    }
+    return res->next;
+}
+
+// LC 86 - Partition List
+ListNode* partition(ListNode* head, int x) {
+    ListNode *a=new ListNode(), *b=new ListNode();
+    ListNode *one=a, *two=b;
+    while(head!=NULL) {
+        if(head->val<x) {
+            one->next=head;
+            one=one->next;
+        } else {
+            two->next=head;
+            two=two->next;
+        }
+        head=head->next;
+        one->next=NULL;
+        two->next=NULL;
+    }
+    one->next=b->next;
+    return a->next;
+}
+
+// LC 2 - Add Two Numbers
+ListNode* addTwoNumbers(ListNode* l1, ListNode* l2) {
+    if(l1==NULL) return l2;
+    if(l2==NULL) return l1;
+    ListNode *res=new ListNode(), *node=res;
+    int carry=0;
+    while(l1!=NULL || l2!=NULL) {
+        int x=l1!=NULL?l1->val:0;
+        int y=l2!=NULL?l2->val:0;
+        int val=x+y+carry;
+        carry=val/10;
+        node->next=new ListNode(val%10);
+        node=node->next;
+        l1=l1!=NULL?l1->next:l1;
+        l2=l2!=NULL?l2->next:l2;
+    }
+    if(carry==1) node->next=new ListNode(1);
+    return res->next;
+}
+
+// LC 19 - Remove Nth Node From End of List
+ListNode* removeNthFromEnd(ListNode* head, int n) {
+    ListNode *p1=head, *p2=head;
+    while(n--) p2=p2->next;
+    if(p2==NULL) return head->next;
+    while(p2->next!=NULL) {
+        p1=p1->next;
+        p2=p2->next;
+    }
+    p1->next=p1->next->next;
+    return head;
+}
+
+// LC 203 - Remove Linked List Elements
+ListNode* removeElements(ListNode* head, int val) {
+    ListNode *res=new ListNode(0, head), *prev=res, *curr=head;
+    while(curr!=NULL) {
+        if(curr->val==val) prev->next=curr->next;
+        else prev=prev->next;
+        curr=curr->next;
+    }
+    return res->next;
 }
 
 int main() {
