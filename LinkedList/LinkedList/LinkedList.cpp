@@ -17,6 +17,19 @@ struct ListNode {
     ListNode(int x, ListNode *next) : val(x), next(next) {}
 };
 
+class Node {
+public:
+    int val;
+    Node* next;
+    Node* random;
+    
+    Node(int _val) {
+        val = _val;
+        next = NULL;
+        random = NULL;
+    }
+};
+
 ListNode* getMid(ListNode* head) {
     ListNode *slow=head, *fast=head;
     while (fast->next!=NULL && fast->next->next!=NULL) {
@@ -415,6 +428,158 @@ ListNode* removeElements(ListNode* head, int val) {
         curr=curr->next;
     }
     return res->next;
+}
+
+// LC 138 - Copy List with Random Pointer
+Node* copyRandomList(Node* head) {
+    if(head==NULL) return NULL;
+    Node *node=head, *res=new Node(0);
+    // make copy
+    while(node!=NULL) {
+        Node *next=node->next;
+        node->next=new Node(node->val);
+        node->next->next=next;
+        node=node->next->next;
+    }
+    node=head;
+    // set random pointer
+    while(node!=NULL) {
+        node->next->random=node->random==NULL?NULL:node->random->next;
+        node=node->next->next;
+    }
+    res->next=head->next;
+    node=head;
+    Node *copy=head->next;
+    // detach
+    while(copy->next!=NULL) {
+        node->next=copy->next;
+        copy->next=copy->next->next;
+        node=node->next;
+        copy=copy->next;
+    }
+    node->next=NULL;
+    return res->next;
+}
+
+// LC 148 - Sort List
+ListNode* sortList(ListNode* head) {
+    if(head==NULL || head->next==NULL) return head;
+    ListNode *slow=head, *fast=head, *next;
+    while (fast->next!=NULL && fast->next->next!=NULL) {
+        slow=slow->next;
+        fast=fast->next->next;
+    }
+    next=slow->next;
+    slow->next=NULL;
+    ListNode *l1=sortList(head);
+    ListNode *l2=sortList(next);
+    return mergeTwoLists(l1, l2);
+}
+
+// LC 147 - Insertion Sort List
+ListNode* insertionSortList(ListNode* head) {
+    if(head==NULL || head->next==NULL) return head;
+    ListNode *res=new ListNode(INT_MIN, head);
+    ListNode *curr=head->next, *tail=head;
+    while(curr!=NULL) {
+        if(tail->val>curr->val) {
+            ListNode *next=curr->next, *prev=res;
+            while(prev->next!=curr && prev->next->val<curr->val)
+                prev=prev->next;
+            curr->next=prev->next;
+            prev->next=curr;
+            tail->next=next;
+            curr=next;
+        } else {
+            tail=tail->next;
+            curr=curr->next;
+        }
+    }
+    return res->next;
+}
+
+// LC 146 - LRU Cache
+class DLLNode {
+public:
+    int key, value;
+    DLLNode *prev=NULL, *next=NULL;
+    DLLNode() : key(0), value(0) {}
+    DLLNode(int key, int value) : key(key), value(value) {}
+    DLLNode(int key, int value, DLLNode* prev, DLLNode* next) : key(key), value(value), prev(prev), next(next) {}
+};
+
+class LRUCache {
+public:
+    // front = most recently used, last = least recently used
+    int capacity;
+    unordered_map<int, DLLNode*> map;
+    DLLNode *head, *tail;
+    
+    void remove(DLLNode *node) {
+        map.erase(node->key);
+        DLLNode *prev=node->prev, *next=node->next;
+        prev->next=next;
+        next->prev=prev;
+        node->prev=node->next=NULL;
+    }
+    
+    void push_front(DLLNode *node) {
+        map[node->key]=node;
+        DLLNode *next=head->next;
+        node->prev=head;
+        node->next=next;
+        head->next=node;
+        next->prev=node;
+    }
+    
+    LRUCache(int capacity) {
+        this->capacity=capacity;
+        head=new DLLNode(0, 0, NULL, NULL);
+        tail=new DLLNode(0, 0, head, NULL);
+        head->next=tail;
+    }
+    
+    int get(int key) {
+        if(map.find(key)==map.end()) return -1;
+        DLLNode *node=map[key];
+        remove(node);
+        push_front(node);
+        return node->value;
+    }
+    
+    void put(int key, int value) {
+        if(map.find(key)!=map.end()) remove(map[key]);
+        else if(map.size()==capacity) remove(tail->prev);
+        push_front(new DLLNode(key, value));
+    }
+};
+
+// LC 1019 - Next Greater Node In Linked List
+vector<int> nextLargerNodes(ListNode* head) {
+    if(head==NULL) return {};
+    vector<int> ans;
+    stack<pair<int, int>> st;
+    int i=0;
+    ListNode *node=head;
+    for(;node!=NULL;node=node->next, i++) {
+        while(!st.empty() && st.top().second<node->val) {
+            ans[st.top().first]=node->val;
+            st.pop();
+        }
+        ans.push_back(0);
+        st.push({i, node->val});
+    }
+    return ans;
+}
+
+// LC 1290 - Convert Binary Number in a Linked List to Integer
+int getDecimalValue(ListNode* head) {
+    int num=0;
+    for(ListNode *node=head;node!=NULL;node=node->next) {
+        num<<=1;
+        num=num|(node->val);
+    }
+    return num;
 }
 
 int main() {

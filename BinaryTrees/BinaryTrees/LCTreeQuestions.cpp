@@ -21,6 +21,14 @@ public:
     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
 };
 
+struct ListNode {
+    int val;
+    ListNode *next;
+    ListNode() : val(0), next(nullptr) {}
+    ListNode(int x) : val(x), next(NULL) {}
+    ListNode(int x, ListNode *next) : val(x), next(next) {}
+};
+
 // LC 617 - Merge Two Binary Trees
 TreeNode* mergeTrees(TreeNode* t1, TreeNode* t2) {
     if(t1==NULL) return t2;
@@ -128,7 +136,6 @@ bool isSameTree(TreeNode* p, TreeNode* q) {
     if(p->val!=q->val) return false;
     return isSameTree(p->left, q->left) && isSameTree(p->right, q->right);
 }
-
 
 // LC 101 - Symmetric Tree
 bool isSymmetric(TreeNode* root1, TreeNode* root2) {
@@ -306,3 +313,193 @@ Node* inorderSuccessor(Node* root) {
     }
     return node;
 }
+
+// LC 94 - Binary Tree Inorder Traversal
+void inorderTraversal(TreeNode* root, vector<int>& ans) {
+    if(root==NULL) return;
+    inorderTraversal(root->left, ans);
+    ans.push_back(root->val);
+    inorderTraversal(root->right, ans);
+}
+
+vector<int> inorderTraversal(TreeNode* root) {
+    vector<int> ans;
+    inorderTraversal(root, ans);
+    return ans;
+}
+
+// LC 96 - Unique Binary Search Trees
+int uniqueBST(int n) {
+    vector<int> dp(n+1, 0);
+    dp[0]=dp[1]=1;
+    for(int i=2;i<=n;i++) {         // n=i
+        for(int j=1;j<=i;j++) {     // select jth no as root
+            dp[i]+=dp[j-1]*dp[i-j];
+        }
+    }
+    return dp[n];
+}
+
+// LC 95 - Unique Binary Search Trees II
+vector<TreeNode*> generateTrees1(int n) /*faster*/ {
+    if(n==0) return {};
+    vector<vector<vector<TreeNode*>>> dp(n+1, vector<vector<TreeNode*>>(n+1));
+    for(int gap=0;gap<=n;gap++) {
+        for(int i=0, j=gap;j<=n;i++, j++) {
+            if(gap==0) {
+                dp[i][j].push_back(NULL);
+                continue;
+            } else if(gap==1) {
+                dp[i][j].push_back(new TreeNode(i+1));
+                continue;
+            }
+            for(int k=i+1;k<=j;k++) {
+                for(TreeNode* left: dp[i][k-1]) {
+                    for(TreeNode* right: dp[k][j]) {
+                        TreeNode *root=new TreeNode(k);
+                        root->left=left;
+                        root->right=right;
+                        dp[i][j].push_back(root);
+                    }
+                }
+            }
+        }
+    }
+    return dp[0][n];
+}
+
+vector<TreeNode*> dfs(int s, int e) {
+    if(s>e) return {nullptr};
+    if(s==e) return {new TreeNode(s)};
+    vector<TreeNode*> res, left, right;
+    for (int i=s;i<=e;i++) {
+        left=dfs(s, i-1);
+        right=dfs(i+1, e);
+        for (auto l: left) {
+            for (auto r: right) {
+                TreeNode* root = new TreeNode(i);
+                root->left=l;
+                root->right=r;
+                res.push_back(root);
+            }
+        }
+    }
+    return res;
+}
+
+vector<TreeNode*> generateTrees2(int n) /*slower*/ {
+    if(n==0) return {};
+    return dfs(1, n);
+}
+
+// LC 98 - Validate Binary Search Tree
+bool isValidBST1(TreeNode* root, TreeNode* min, TreeNode* max) {
+    if(root==NULL) return true;
+    if((min!=NULL && root->val<=min->val) ||
+       (max!=NULL && root->val>=max->val)) return false;
+    return isValidBST1(root->left, min, root)
+    && isValidBST1(root->right, root, max);
+}
+
+bool isValidBST1(TreeNode* root) {
+    return isValidBST1(root, NULL,  NULL);
+}
+
+bool isValidBST2(TreeNode* node, TreeNode* &prev) {
+    if (node==NULL) return true;
+    if (!isValidBST2(node->left, prev)) return false;
+    if (prev!=NULL && prev->val>=node->val) return false;
+    prev=node;
+    return isValidBST2(node->right, prev);
+}
+
+bool isValidBST2(TreeNode* root) {
+    TreeNode* prev=NULL;
+    return isValidBST2(root, prev);
+}
+
+// LC 99 - Recover Binary Search Tree
+void recoverTree(TreeNode* root, TreeNode* &prev, TreeNode* &n1, TreeNode* &n2) {
+    if(root==NULL) return;
+    recoverTree(root->left, prev, n1, n2);
+    if(prev!=NULL && n1==NULL && prev->val>=root->val) n1=prev;
+    if(prev!=NULL && n1!=NULL && prev->val>=root->val) n2=root;
+    prev=root;
+    recoverTree(root->right, prev, n1, n2);
+}
+
+void recoverTree(TreeNode* root) {
+    TreeNode *prev=NULL, *n1=NULL, *n2=NULL;
+    recoverTree(root, prev, n1, n2);
+    swap(n1->val, n2->val);
+}
+
+// LC 662 - Maximum Width of Binary Tree
+int widthOfBinaryTree(TreeNode* root) {
+    if(root==NULL) return 0;
+    queue<pair<TreeNode*, int>> q;
+    q.push({root, 1});
+    int ans=0;
+    while(!q.empty()) {
+        int size=(int) q.size(), l=INT_MAX, r=INT_MIN, flag=0;
+        if(size==1) q.front().second=1; // important to prevent overflow
+        for(;size>0;size--, flag++) {
+            TreeNode *node=q.front().first;
+            int idx=q.front().second;
+            q.pop();
+            l=min(l, idx);
+            r=max(r, idx);
+            if(node->left!=NULL) q.push({node->left,idx*2});
+            if(node->right!=NULL) q.push({node->right,idx+idx+1});
+        }
+        if(flag>0) ans=max(ans, r-l+1);
+    }
+    return ans;
+}
+
+// LC 108 - Convert Sorted Array to Binary Search Tree
+TreeNode* sortedArrayToBST(vector<int>& nums, int l, int r) {
+    if(l>r) return NULL;
+    int m=(l+r)/2;
+    TreeNode *root=new TreeNode(nums[m]);
+    root->left=sortedArrayToBST(nums, l, m-1);
+    root->right=sortedArrayToBST(nums, m+1, r);
+    return root;
+}
+
+TreeNode* sortedArrayToBST1(vector<int>& nums) /*recursion method*/ {
+    return sortedArrayToBST(nums, 0, (int) nums.size()-1);
+}
+
+// LC 109 - Convert Sorted List to Binary Search Tree
+TreeNode* sortedListToBST1(ListNode* head) {
+    if(head==NULL) return NULL;
+    ListNode *slow=head, *fast=head, *prev=NULL;
+    while (fast->next!=NULL && fast->next->next!=NULL) {
+        prev=slow;
+        slow=slow->next;
+        fast=fast->next->next;
+    }
+    if(prev!=NULL) prev->next=NULL;
+    TreeNode* root=new TreeNode(slow->val);
+    if(slow!=head) root->left=sortedListToBST1(head);
+    root->right=sortedListToBST1(slow->next);
+    return root;
+}
+
+TreeNode* sortedListToBST2(ListNode* &head, int l, int r) /*inorder method*/ {
+    if(l>r) return NULL;
+    int m=(l+r)/2;
+    TreeNode *left=sortedListToBST2(head, l, m-1);
+    TreeNode *root=new TreeNode(head->val, left, NULL);
+    head=head->next;    // to maintain inorder traversal - VVIMP
+    root->right=sortedListToBST2(head, m+1, r);
+    return root;
+}
+
+TreeNode* sortedListToBST2(ListNode* head) {
+    int size=0;
+    for(ListNode *node=head;node!=NULL;node=node->next)
+        size++;
+    return sortedListToBST2(head, 0, size-1);
+    }
