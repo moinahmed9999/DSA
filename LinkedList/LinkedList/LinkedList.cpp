@@ -582,6 +582,68 @@ int getDecimalValue(ListNode* head) {
     return num;
 }
 
+// LC 430 - Flatten a Multilevel Doubly Linked List
+class MLDLLNode /*Multilevel Doubly Linked List Node*/ {
+public:
+    int val;
+    MLDLLNode* prev;
+    MLDLLNode* next;
+    MLDLLNode* child;
+};
+
+MLDLLNode* flatten1(MLDLLNode* head) {
+    if(head==NULL) return NULL;
+    MLDLLNode *node=head, *prev=NULL, *next, *child, *tail;
+    while(node!=NULL && node->child==NULL) {
+        prev=NULL;
+        node=node->next;
+    }
+    if(node==NULL) return head;
+    next=node->next;
+    
+    node->child=flatten1(node->child);
+    tail=child=node->child;
+    
+    while(tail->next!=NULL) tail=tail->next;
+    
+    child->prev=node;
+    node->next=child;
+    
+    if(next!=NULL) next->prev=tail;
+    tail->next=next;
+    
+    node->child=NULL;
+    
+    tail->next=flatten1(tail->next);
+    
+    return head;
+}
+
+MLDLLNode* flattenGetLast(MLDLLNode *head) {
+    /*returns tail of the DLL after flattening it*/
+    if(head==NULL) return NULL;
+    MLDLLNode *node=head, *last=NULL;
+    while(node!=NULL) {
+        last=node;
+        MLDLLNode *next=node->next, *childLast=flattenGetLast(node->child);
+        if(childLast!=NULL) { // means child is not NULL
+            node->child->prev=node;
+            node->next=node->child;
+            childLast->next=next;
+            if(next!=NULL) next->prev=childLast;
+            last=childLast;
+            node->child=NULL;
+        }
+        node=node->next;
+    }
+    return last;
+}
+
+MLDLLNode* flatten2(MLDLLNode* head) /*better*/ {
+    flattenGetLast(head);
+    return head;
+}
+
 int main() {
     
     return 0;

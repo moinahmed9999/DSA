@@ -315,16 +315,32 @@ Node* inorderSuccessor(Node* root) {
 }
 
 // LC 94 - Binary Tree Inorder Traversal
-void inorderTraversal(TreeNode* root, vector<int>& ans) {
+void inorderTraversal1(TreeNode* root, vector<int>& ans) /*recursive*/ {
     if(root==NULL) return;
-    inorderTraversal(root->left, ans);
+    inorderTraversal1(root->left, ans);
     ans.push_back(root->val);
-    inorderTraversal(root->right, ans);
+    inorderTraversal1(root->right, ans);
 }
 
-vector<int> inorderTraversal(TreeNode* root) {
+vector<int> inorderTraversal1(TreeNode* root) {
     vector<int> ans;
-    inorderTraversal(root, ans);
+    inorderTraversal1(root, ans);
+    return ans;
+}
+
+vector<int> inorderTraversal2(TreeNode* root) /*iterative*/ {
+    if(root==NULL) return {};
+    vector<int> ans;
+    stack<TreeNode*> st;
+    while(root!=NULL || !st.empty()) {
+        while(root!=NULL) {
+            st.push(root);
+            root=root->left;
+        }
+        root=st.top(); st.pop();
+        ans.push_back(root->val);
+        root=root->right;
+    }
     return ans;
 }
 
@@ -503,3 +519,150 @@ TreeNode* sortedListToBST2(ListNode* head) {
         size++;
     return sortedListToBST2(head, 0, size-1);
     }
+
+// LC 144 - Binary Tree Preorder Traversal
+
+void preorderTraversal1(TreeNode* root, vector<int>& ans) /*recursive*/ {
+    if(root==NULL) return;
+    ans.push_back(root->val);
+    preorderTraversal1(root->left, ans);
+    preorderTraversal1(root->right, ans);
+}
+
+vector<int> preorderTraversal1(TreeNode* root) {
+    vector<int> ans;
+    preorderTraversal1(root, ans);
+    return ans;
+}
+
+vector<int> preorderTraversal2(TreeNode* root) /*iterative*/ {
+    if(root==NULL) return {};
+    vector<int> ans;
+    stack<TreeNode*> st;
+    st.push(root);
+    while(!st.empty()) {
+        TreeNode *node=st.top(); st.pop();
+        ans.push_back(node->val);
+        if(node->right!=NULL) st.push(node->right);
+        if(node->left!=NULL) st.push(node->left);
+    }
+    return ans;
+}
+
+// LC 145 - Binary Tree Postorder Traversal
+void postorderTraversal1(TreeNode* root, vector<int>& ans) /*recursive*/ {
+    if(root==NULL) return;
+    postorderTraversal1(root->left, ans);
+    postorderTraversal1(root->right, ans);
+    ans.push_back(root->val);
+}
+
+vector<int> postorderTraversal1(TreeNode* root) {
+    vector<int> ans;
+    postorderTraversal1(root, ans);
+    return ans;
+}
+
+vector<int> postorderTraversal2(TreeNode* root) /*iterative*/ {
+    if(root==NULL) return {};
+    vector<int> ans;
+    stack<TreeNode*> st;
+    st.push(root);
+    while(!st.empty()) {
+        TreeNode *node=st.top(); st.pop();
+        ans.insert(ans.begin(), node->val);
+        if(node->left!=NULL) st.push(node->left);
+        if(node->right!=NULL) st.push(node->right);
+    }
+    return ans;
+    }
+
+// LC 863 - All Nodes Distance K in Binary Tree
+void distanceKDown(TreeNode* root, int K, vector<int>& ans) {
+    if(root==NULL) return;
+    if(K==0) {
+        ans.push_back(root->val);
+        return;
+    }
+    distanceKDown(root->left, K-1, ans);
+    distanceKDown(root->right, K-1, ans);
+}
+
+int distanceK(TreeNode* root, TreeNode* target, int K, vector<int>& ans) {
+    if(root==NULL) return -1;
+    if(root==target) {
+        distanceKDown(root, K, ans);
+        return K-1;
+    }
+    int left=distanceK(root->left, target, K, ans);
+    if(left==0) {
+        ans.push_back(root->val);
+        return -1;
+    } else if(left>0) {
+        distanceKDown(root->right, left-1, ans);
+        return left-1;
+    }
+    int right=distanceK(root->right, target, K, ans);
+    if(right==0) {
+        ans.push_back(root->val);
+        return -1;
+    } else if(right>0) {
+        distanceKDown(root->left, right-1, ans);
+        return right-1;
+    }
+    return -1;
+}
+
+vector<int> distanceK(TreeNode* root, TreeNode* target, int K) {
+    vector<int> ans;
+    distanceK(root, target, K, ans);
+    return ans;
+}
+
+// LC 687 - Longest Univalue Path
+int countUnivalePath(TreeNode* root, TreeNode* target) {
+    if(root==NULL || root->val!=target->val) return 0;
+    int left=countUnivalePath(root->left, target);
+    int right=countUnivalePath(root->right, target);
+    return max(left, right) + 1;
+}
+
+void longestUnivaluePath(TreeNode* root, int& ans) {
+    if(root==NULL) return;
+    int count=countUnivalePath(root->left, root) + countUnivalePath(root->right, root);
+    ans=max(ans, count);
+    longestUnivaluePath(root->left, ans);
+    longestUnivaluePath(root->right, ans);
+}
+
+int longestUnivaluePath(TreeNode* root) {
+    int ans=0;
+    longestUnivaluePath(root, ans);
+    return ans;
+}
+
+// LC 103 - Binary Tree Zigzag Level Order Traversal
+vector<vector<int>> zigzagLevelOrder(TreeNode* root) {
+    vector<vector<int>> ans;
+    if(root==NULL) return ans;
+    queue<TreeNode*> q;
+    q.push(root);
+    int zigzag=1;
+    while(!q.empty()) {
+        int size=(int) q.size(), idx;
+        vector<int> levelOrder(size);
+        if(zigzag==1) idx=0;
+        else idx=size-1;
+        while(size--) {
+            TreeNode *node=q.front(); q.pop();
+            levelOrder[idx]=node->val;
+            idx+=zigzag;
+            if(node->left!=NULL) q.push(node->left);
+            if(node->right!=NULL) q.push(node->right);
+        }
+        ans.push_back(levelOrder);
+        zigzag*=-1;
+    }
+    return ans;
+}
+
