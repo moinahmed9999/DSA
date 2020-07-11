@@ -177,14 +177,12 @@ int countCompleteTreeNodes(TreeNode* root) {
 int sumNumbers(TreeNode* root, int sum) {
     if(!root) return 0;
     int currSum = (10*sum) + root->val;
-    if(!root->left &&  !root->right) return currSum;
+    if(!root->left && !root->right) return currSum;
     return sumNumbers(root->left, currSum) + sumNumbers(root->right, currSum);
 }
 
 int sumNumbers(TreeNode* root) {
-    if(!root) return 0;
-    if(!root->left &&  !root->right) return root->val;
-    return sumNumbers(root->left, root->val) + sumNumbers(root->right, root->val);
+    return sumNumbers(root, 0);
 }
 
 // LC 102 - Binary Tree Level Order Traversal
@@ -665,4 +663,72 @@ vector<vector<int>> zigzagLevelOrder(TreeNode* root) {
     }
     return ans;
 }
+
+// LC 105 - Construct Binary Tree from Preorder and Inorder Traversal
+TreeNode* buildTree1(vector<int>& preorder, int l1, int r1, vector<int>& inorder, int l2, int r2, unordered_map<int, int>& map) {
+    if(l1>r1) return NULL;
+    TreeNode *root=new TreeNode(preorder[l1]);
+    if(l1==r1) return root;
+    int idx=map[preorder[l1]];
+    int lSize=idx-l2;
+    root->left=buildTree1(preorder, l1+1, l1+lSize, inorder, l2, idx-1, map);
+    root->right=buildTree1(preorder, l1+lSize+1, r1, inorder, idx+1, r2, map);
+    return root;
+}
+
+TreeNode* buildTree1(vector<int>& preorder, vector<int>& inorder) {
+    int n=(int) preorder.size();
+    unordered_map<int, int> map;
+    for(int i=0;i<n;i++) map[inorder[i]]=i;
+    return buildTree1(preorder, 0, n-1, inorder, 0, n-1, map);
+}
+
+// LC 106 - Construct Binary Tree from Inorder and Postorder Traversal
+TreeNode* buildTree2(vector<int>& inorder, int l1, int r1, vector<int>& postorder, int l2, int r2, unordered_map<int, int>& map) {
+    if(l2>r2) return NULL;
+    TreeNode *root=new TreeNode(postorder[r2]);
+    if(l2==r2) return root;
+    int idx=map[postorder[r2]];
+    int lSize=idx-l1;
+    root->left=buildTree2(inorder, l1, idx-1, postorder, l2, l2+lSize-1, map);
+    root->right=buildTree2(inorder, idx+1, r1, postorder, l2+lSize, r2-1, map);
+    return root;
+}
+
+TreeNode* buildTree2(vector<int>& inorder, vector<int>& postorder) {
+    int n=(int) postorder.size();
+    unordered_map<int, int> map;
+    for(int i=0;i<n;i++) map[inorder[i]]=i;
+    return buildTree2(inorder, 0, n-1, postorder, 0, n-1, map);
+    }
+
+// LC 112 - Path Sum
+bool hasPathSum(TreeNode* root, int sum) {
+    if(root==NULL) return false;
+    if(root->val==sum && root->left==NULL && root->right==NULL) return true;
+    return hasPathSum(root->left, sum-root->val) || hasPathSum(root->right, sum-root->val);
+}
+
+// LC 113 - Path Sum II
+void pathSum(TreeNode* root, int sum, vector<int>& path, vector<vector<int>>& paths) {
+    if(root==NULL) return;
+    path.push_back(root->val);
+    if(root->val==sum && root->left==NULL && root->right==NULL) {
+        paths.push_back(path);
+        path.pop_back();
+        return;
+    }
+    pathSum(root->left, sum-root->val, path, paths);
+    pathSum(root->right, sum-root->val, path, paths);
+    path.pop_back();
+}
+
+vector<vector<int>> pathSum(TreeNode* root, int sum) {
+    vector<int> path;
+    vector<vector<int>> paths;
+    pathSum(root, sum, path, paths);
+    return paths;
+    }
+
+// LC 437 - Path Sum III
 
