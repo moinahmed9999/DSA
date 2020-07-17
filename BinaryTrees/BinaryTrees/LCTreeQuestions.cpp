@@ -519,7 +519,6 @@ TreeNode* sortedListToBST2(ListNode* head) {
     }
 
 // LC 144 - Binary Tree Preorder Traversal
-
 void preorderTraversal1(TreeNode* root, vector<int>& ans) /*recursive*/ {
     if(root==NULL) return;
     ans.push_back(root->val);
@@ -710,7 +709,7 @@ bool hasPathSum(TreeNode* root, int sum) {
 }
 
 // LC 113 - Path Sum II
-void pathSum(TreeNode* root, int sum, vector<int>& path, vector<vector<int>>& paths) {
+void pathSumII(TreeNode* root, int sum, vector<int>& path, vector<vector<int>>& paths) {
     if(root==NULL) return;
     path.push_back(root->val);
     if(root->val==sum && root->left==NULL && root->right==NULL) {
@@ -718,17 +717,502 @@ void pathSum(TreeNode* root, int sum, vector<int>& path, vector<vector<int>>& pa
         path.pop_back();
         return;
     }
-    pathSum(root->left, sum-root->val, path, paths);
-    pathSum(root->right, sum-root->val, path, paths);
+    pathSumII(root->left, sum-root->val, path, paths);
+    pathSumII(root->right, sum-root->val, path, paths);
     path.pop_back();
 }
 
-vector<vector<int>> pathSum(TreeNode* root, int sum) {
+vector<vector<int>> pathSumII(TreeNode* root, int sum) {
     vector<int> path;
     vector<vector<int>> paths;
-    pathSum(root, sum, path, paths);
+    pathSumII(root, sum, path, paths);
     return paths;
     }
 
 // LC 437 - Path Sum III
+int pathSumIII(TreeNode* root, int sum, int currSum, unordered_map<int, int>& map) {
+    if(root==NULL) return 0;
+    currSum+=root->val;
+    int count=map[currSum-sum];
+    map[currSum]++;
+    count+=pathSumIII(root->left, sum, currSum, map) + pathSumIII(root->right, sum, currSum, map);
+    map[currSum]--;
+    return count;
+}
 
+int pathSumIII(TreeNode* root, int sum) {
+    unordered_map<int, int> map;
+    map[0]=1;
+    return pathSumIII(root, sum, 0, map);
+}
+
+// LC 124 - Binary Tree Maximum Path Sum
+int maxPathSum(TreeNode* root, int& ans) {
+    if(root==NULL) return 0;
+    int lSum=maxPathSum(root->left, ans), rSum=maxPathSum(root->right, ans);
+    int ret=max(root->val, root->val + max(lSum, rSum));
+    ans=max(ans, max(ret, root->val+lSum+rSum));
+    return ret;
+}
+
+int maxPathSum(TreeNode* root) {
+    int ans=INT_MIN;
+    maxPathSum(root, ans);
+    return ans;
+    }
+
+// LC 666 - Path Sum IV
+int pathSumIV(int root, int currSum, unordered_map<int, int>& map) {
+    if(map.find(root)==map.end()) return 0;
+    int depth=root/10, position=root%10;
+    int leftNode=(depth+1)*10 + position*2 - 1, rightNode=leftNode + 1;
+    currSum+=map[root];
+    if(map.find(leftNode)==map.end() && map.find(rightNode)==map.end()) {
+        return currSum;
+    }
+    return pathSumIV(leftNode, currSum, map) + pathSumIV(rightNode, currSum, map);
+}
+
+int pathSumIV(vector<int> &nums) {
+    if(nums.size()==0) return 0;
+    int first=INT_MAX;
+    unordered_map<int, int> map;
+    for(int num: nums) {
+        first=min(first, num);
+        map[num/10]=num%10;
+    }
+    return pathSumIV(first/10, 0, map);
+}
+
+// LC 988 - Smallest String Starting From Leaf
+void smallestFromLeaf(TreeNode* root, string s, string& ans) {
+    if(root==NULL) return;
+    s=char(root->val + 'a') + s;
+    if(root->left==NULL && root->right==NULL && s<ans)
+        ans=s;
+    smallestFromLeaf(root->left, s, ans);
+    smallestFromLeaf(root->right, s, ans);
+}
+
+string smallestFromLeaf(TreeNode* root) {
+    string ans="~";
+    smallestFromLeaf(root, "", ans);
+    return ans;
+}
+
+class NRNode /*Next Right Node*/ {
+public:
+    int val;
+    NRNode* left;
+    NRNode* right;
+    NRNode* next;
+    NRNode() : val(0), left(NULL), right(NULL), next(NULL) {}
+    NRNode(int _val) : val(_val), left(NULL), right(NULL), next(NULL) {}
+    NRNode(int _val, NRNode* _left, NRNode* _right, NRNode* _next) :
+    val(_val), left(_left), right(_right), next(_next) {}
+};
+
+// LC 116 - Populating Next Right Pointers in Each Node
+NRNode* connect1(NRNode* root) /*better space complexity*/ {
+    if(root==NULL || root->left==NULL || root->right==NULL) return root;
+    root->left->next=root->right;
+    if(root->next!=NULL) root->right->next=root->next->left;
+    connect1(root->left);
+    connect1(root->right);
+    return root;
+}
+
+NRNode* connect2(NRNode* root) {
+    if(root==NULL) return NULL;
+    queue<NRNode*> q;
+    q.push(root);
+    while(!q.empty()) {
+        int size=(int) q.size();
+        while(size--) {
+            NRNode *node=q.front(); q.pop();
+            if(size) node->next=q.front();
+            if(node->left!=NULL) q.push(node->left);
+            if(node->right!=NULL) q.push(node->right);
+        }
+    }
+    return root;
+}
+
+// LC 117 - Populating Next Right Pointers in Each Node II
+NRNode* connect(NRNode* root) {
+    if(root==NULL) return NULL;
+    queue<NRNode*> q;
+    q.push(root);
+    while(!q.empty()) {
+        int size=(int) q.size();
+        while(size--) {
+            NRNode *node=q.front(); q.pop();
+            if(size) node->next=q.front();
+            if(node->left!=NULL) q.push(node->left);
+            if(node->right!=NULL) q.push(node->right);
+        }
+    }
+    return root;
+}
+
+// LC 114 - Flatten Binary Tree to Linked List  (Preorder)
+void flatten1(TreeNode* root) /*iterative - stack*/ {
+    if(root==NULL) return;
+    stack<TreeNode*> st;
+    st.push(root);
+    while(!st.empty()) {
+        TreeNode *node=st.top(); st.pop();
+        if(node->right!=NULL) st.push(node->right);
+        if(node->left!=NULL) st.push(node->left);
+        node->left=NULL;
+        node->right=st.size()==0?NULL:st.top();
+    }
+}
+
+void flatten2(TreeNode* root, TreeNode*& prev) /*recursive*/ {
+    if(root==NULL) return;
+    if(root->left!=NULL) {
+        flatten2(root->left, prev);
+        prev->right=root->right;
+        root->right=root->left;
+        root->left=NULL;
+    }
+    prev=root;
+    flatten2(root->right, prev);
+}
+
+void flatten2(TreeNode* root) {
+    TreeNode *prev=NULL;
+    flatten2(root, prev);
+}
+
+// LC 199 - Binary Tree Right Side View
+void rightSideView(TreeNode* root, int level, vector<int>& ans) {
+    if(root==NULL) return;
+    if(ans.size()==level) ans.push_back(root->val);
+    rightSideView(root->right, level+1, ans);
+    rightSideView(root->left, level+1, ans);
+}
+
+vector<int> rightSideView(TreeNode* root) {
+    vector<int> ans;
+    rightSideView(root, 0, ans);
+    return ans;
+}
+
+// LC 235 - Lowest Common Ancestor of a Binary Search Tree
+TreeNode* lowestCommonAncestorBST(TreeNode* root, TreeNode* p, TreeNode* q) {
+    if(p->val<root->val && q->val<root->val)
+        return lowestCommonAncestorBST(root->left, p, q);
+    if(p->val>root->val && q->val>root->val)
+        return lowestCommonAncestorBST(root->right, p, q);
+    return root;
+}
+
+// LC 236 - Lowest Common Ancestor of a Binary Tree
+TreeNode* lowestCommonAncestorBT(TreeNode* root, TreeNode* p, TreeNode* q) {
+    if(root==NULL || root==p || root==q) return root;
+    TreeNode* left=lowestCommonAncestorBT(root->left, p, q);
+    TreeNode* right=lowestCommonAncestorBT(root->right, p, q);
+    if(left && right) return root;
+    return left!=NULL?left:right;
+}
+
+// LC 257 - Binary Tree Paths
+void binaryTreePaths(TreeNode* root, string s, vector<string>& ans) {
+    if(root==NULL) return;
+    s+="->" + to_string(root->val);
+    if(root->left==NULL && root->right==NULL) ans.push_back(s);
+    binaryTreePaths(root->left, s, ans);
+    binaryTreePaths(root->right, s, ans);
+}
+
+vector<string> binaryTreePaths(TreeNode* root) {
+    if(root==NULL) return {};
+    vector<string> ans;
+    string s=to_string(root->val);
+    if(root->left==NULL && root->right==NULL) ans.push_back(s);
+    binaryTreePaths(root->left, s, ans);
+    binaryTreePaths(root->right, s, ans);
+    return ans;
+}
+
+// LC 1110 - Delete Nodes And Return Forest
+TreeNode* delNodes(TreeNode* root, unordered_set<int>& set, vector<TreeNode*>& ans) {
+    if(root==NULL) return NULL;
+    root->left=delNodes(root->left, set, ans);
+    root->right=delNodes(root->right, set, ans);
+    if(set.find(root->val)!=set.end()) {
+        if(root->left!=NULL) ans.push_back(root->left);
+        if(root->right!=NULL) ans.push_back(root->right);
+        return NULL;
+    }
+    return root;
+}
+
+vector<TreeNode*> delNodes(TreeNode* root, vector<int>& to_delete) {
+    unordered_set<int> set;
+    vector<TreeNode*> ans;
+    for(int node: to_delete) set.insert(node);
+    if(delNodes(root, set, ans)!=NULL) ans.push_back(root);
+    return ans;
+}
+
+// LC 337 - House Robber III
+vector<int> dfs(TreeNode* root) {   //0 means rob and 1 means not rob
+    if(root==NULL) return {0,0};
+    vector<int> left=dfs(root->left), right=dfs(root->right), ans(2);
+    ans[0]=root->val + left[1] + right[1];
+    ans[1]=max(left[0], left[1]) + max(right[0], right[1]);
+    return ans;
+}
+
+int rob(TreeNode* root) {
+    vector<int> ans=dfs(root);
+    return max(ans[0], ans[1]);
+    }
+
+// LC 450 - Delete Node in a BST
+TreeNode* deleteNode(TreeNode* root, int key) {
+    if(root==NULL) return NULL;
+    if(key<root->val) root->left=deleteNode(root->left, key);
+    else if(key>root->val) root->right=deleteNode(root->right, key);
+    else {
+        if(root->left==NULL) return root->right;
+        else if(root->right!=NULL) {
+            TreeNode *node=root->right;
+            while(node->left!=NULL) {
+                node=node->left;
+            }
+            root->val=node->val;
+            root->right=deleteNode(root->right, root->val);
+            return root;
+        } else return root->left;
+    }
+    return root;
+}
+
+// LC 501 - Find Mode in Binary Search Tree
+void findMode(TreeNode* root, int& freq, int& maxFreq, int& prev, vector<int>& ans) /*inorder*/ {
+    if(root==NULL) return;
+    findMode(root->left, freq, maxFreq, prev, ans);
+    
+    freq=prev==root->val?freq+1:1;
+    if(freq==maxFreq) ans.push_back(root->val);
+    else if(freq>maxFreq) {
+        maxFreq=freq;
+        ans.clear();
+        ans.push_back(root->val);
+    }
+    prev=root->val;
+    
+    findMode(root->right, freq, maxFreq, prev, ans);
+}
+
+vector<int> findMode(TreeNode* root) {
+    int freq=0, maxFreq=0, prev=INT_MIN;
+    vector<int> ans;
+    findMode(root, freq, maxFreq, prev, ans);
+    return ans;
+}
+
+// LC 538 - Convert BST to Greater Tree
+void convertBST(TreeNode* root, int &prev) {
+    if(root==NULL) return;
+    convertBST(root->right, prev);
+    root->val+=prev;
+    prev=root->val;
+    convertBST(root->left, prev);
+}
+
+TreeNode* convertBST(TreeNode* root) {
+    int prev=0;
+    convertBST(root, prev);
+    return root;
+    }
+
+// LC 563 - Binary Tree Tilt
+int findTilt(TreeNode* root, int& ans) {
+    if(root==NULL) return 0;
+    int left=findTilt(root->left, ans), right=findTilt(root->right, ans);
+    ans+=abs(left-right);
+    return left+root->val+right;
+}
+
+int findTilt(TreeNode* root) {
+    int ans=0;
+    findTilt(root, ans);
+    return ans;
+}
+
+// LC 572 - Subtree of Another Tree
+bool match(TreeNode* s, TreeNode* t) {
+    if(s==NULL && t==NULL) return true;
+    if(s==NULL || t==NULL || s->val!=t->val) return false;
+    return match(s->left, t->left) && match(s->right, t->right);
+}
+
+bool isSubtree(TreeNode* s, TreeNode* t) {
+    if(s==NULL) return false;
+    if(s->val==t->val && match(s, t)) return true;
+    return isSubtree(s->left, t) || isSubtree(s->right, t);
+}
+
+// LC 513 - Find Bottom Left Tree Value
+int findBottomLeftValue(TreeNode* root) /*bfs from right to left*/ {
+    queue<TreeNode*> q;
+    q.push(root);
+    TreeNode *curr=NULL;
+    while(!q.empty()) {
+        curr=q.front(); q.pop();
+        if(curr->right!=NULL) q.push(curr->right);
+        if(curr->left!=NULL) q.push(curr->left);
+    }
+    return curr->val;
+}
+
+// LC 515 - Find Largest Value in Each Tree Row
+void largestValues(TreeNode* root, int level, vector<int>& ans) {
+    if(root==NULL) return;
+    ans[level]=max(ans[level], root->val);
+    if((root->left!=NULL || root->right!=NULL) && (ans.size()<level+2))
+        ans.push_back(INT_MIN);
+    largestValues(root->left, level+1, ans);
+    largestValues(root->right, level+1, ans);
+}
+
+vector<int> largestValues(TreeNode* root) {
+    if(root==NULL) return {};
+    vector<int> ans(1, INT_MIN);
+    largestValues(root, 0, ans);
+    return ans;
+}
+
+// LC 623 - Add One Row to Tree
+TreeNode* addOneRow(TreeNode* root, int v, int d) {
+    if(d==1) return new TreeNode(v, root, NULL);
+    int depth=2;
+    queue<TreeNode*> q;
+    q.push(root);
+    while(!q.empty()) {
+        int size=(int) q.size();
+        while(size--) {
+            TreeNode *node=q.front(); q.pop();
+            if(depth==d) {
+                node->left=new TreeNode(v, node->left, NULL);
+                node->right=new TreeNode(v, NULL, node->right);
+            } else {
+                if(node->left!=NULL) q.push(node->left);
+                if(node->right!=NULL) q.push(node->right);
+            }
+        }
+        depth++;
+    }
+    return root;
+}
+
+// LC 297 - Serialize and Deserialize Binary Tree
+string serialize1(TreeNode* root) /*Encodes a tree to a single string*/ {
+    string s="";
+    queue<TreeNode*> q;
+    q.push(root);
+    while(!q.empty()) {
+        TreeNode *node=q.front(); q.pop();
+        if(node==NULL) s+="#,";
+        else {
+            s+=to_string(node->val) + "," ;
+            q.push(node->left);
+            q.push(node->right);
+        }
+    }
+    return s;
+}
+
+TreeNode* deserialize1(string data) /*Decodes your encoded data to tree*/ {
+    if(data=="#,") return NULL;
+    stringstream ss(data);
+    string s;
+    getline(ss,s,',');
+    TreeNode *root=new TreeNode(stoi(s));
+    queue<TreeNode*> q;
+    q.push(root);
+    while(!q.empty()) {
+        TreeNode *node=q.front(); q.pop();
+        getline(ss,s,',');
+        if(s!="#") {
+            node->left=new TreeNode(stoi(s));
+            q.push(node->left);
+        }
+        getline(ss,s,',');
+        if(s!="#") {
+            node->right=new TreeNode(stoi(s));
+            q.push(node->right);
+        }
+    }
+    return root;
+}
+
+string serialize2(TreeNode* root) {
+    if(root==NULL) return "#";
+    return to_string(root->val)+","+serialize2(root->left)+","+serialize2(root->right);
+}
+
+TreeNode* deserialize2(stringstream& ss) {
+    string s;
+    getline(ss,s,',');
+    if(s=="#") return NULL;
+    return new TreeNode(stoi(s), deserialize2(ss), deserialize2(ss));
+}
+
+TreeNode* deserialize2(string data) {
+    stringstream ss(data);
+    return deserialize2(ss);
+}
+
+// LC 652 - Find Duplicate Subtrees
+string serializeTree(TreeNode* root, unordered_map<string, int>& map, vector<TreeNode*>& ans) {
+    if(root==NULL) return "#";
+    string s=to_string(root->val)+","+serializeTree(root->left, map, ans)+","+serializeTree(root->right, map, ans);
+    map[s]++;
+    if(map[s]==2) ans.push_back(root);
+    return s;
+}
+
+vector<TreeNode*> findDuplicateSubtrees(TreeNode* root) {
+    unordered_map<string, int> map;
+    vector<TreeNode*> ans;
+    serializeTree(root, map, ans);
+    return ans;
+}
+
+// LC 968 - Binary Tree Cameras
+int minCameraCover(TreeNode *root, int& ans) {
+    // 0 - not covered, 1 - has camera, 2 - covered
+    if(root==NULL) return 2;
+    int left=minCameraCover(root->left, ans), right=minCameraCover(root->right, ans);
+    if(left==0 || right==0) {
+        ans++;
+        return 1;
+    }
+    return left==1 || right==1?2: 0;
+}
+
+int minCameraCover(TreeNode* root) {
+    int ans=0;
+    int res=minCameraCover(root, ans);
+    return ans+=res==0?1:0;
+}
+
+// LC 979 - Distribute Coins in Binary Tree
+int distributeCoins(TreeNode* root, int& ans) {
+    if(root==NULL) return 0;
+    int left=distributeCoins(root->left, ans), right=distributeCoins(root->right, ans);
+    ans+=abs(left) + abs(right);
+    return root->val+left+right-1;
+}
+
+int distributeCoins(TreeNode* root) {
+    int ans=0;
+    distributeCoins(root, ans);
+    return ans;
+}
