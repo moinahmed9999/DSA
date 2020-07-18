@@ -887,7 +887,7 @@ void flatten2(TreeNode* root) {
 }
 
 // LC 199 - Binary Tree Right Side View
-void rightSideView(TreeNode* root, int level, vector<int>& ans) {
+void rightSideView(TreeNode* root, int level, vector<int>& ans) /*dfs*/ {
     if(root==NULL) return;
     if(ans.size()==level) ans.push_back(root->val);
     rightSideView(root->right, level+1, ans);
@@ -1214,5 +1214,154 @@ int distributeCoins(TreeNode* root, int& ans) {
 int distributeCoins(TreeNode* root) {
     int ans=0;
     distributeCoins(root, ans);
+    return ans;
+}
+
+// LC 987 - Vertical Order Traversal of a Binary Tree
+vector<vector<int>> verticalTraversal1(TreeNode* root) /*bfs, faster*/ {
+    map<int, vector<int>> map;
+    queue<pair<TreeNode*, int>> q;
+    vector<vector<int>> ans;
+    q.push({root, 0});
+    while(!q.empty()) {
+        int size=(int) q.size();
+        unordered_map<int, set<int>> level;
+        while(size--) {
+            TreeNode *node=q.front().first;
+            int x=q.front().second;
+            q.pop();
+            level[x].insert(node->val);
+            if(node->left!=NULL) q.push({node->left, x-1});
+            if(node->right!=NULL) q.push({node->right, x+1});
+        }
+        for(auto x: level) map[x.first].insert(map[x.first].end(), x.second.begin(), x.second.end());
+    }
+    for(auto x: map) ans.push_back(x.second);
+    return ans;
+}
+
+void verticalTraversal2(TreeNode *root, int x, int y, map<int, map<int, set<int>>>& map) /*dfs*/ {
+    if(root==NULL) return;
+    map[x][y].insert(root->val);
+    verticalTraversal2(root->left, x-1, y+1, map);
+    verticalTraversal2(root->right, x+1, y+1, map);
+}
+
+vector<vector<int>> verticalTraversal2(TreeNode* root) {
+    map<int, map<int, set<int>>> map;
+    vector<vector<int>> ans;
+    verticalTraversal2(root, 0, 0, map);
+    for(auto x: map) {
+        vector<int> vLevel;
+        for(auto y: x.second) {
+            vLevel.insert(vLevel.end(), y.second.begin(), y.second.end());
+        }
+        ans.push_back(vLevel);
+    }
+    return ans;
+}
+
+// GFG - Left View of Binary Tree
+struct GFGNode {
+    int data;
+    struct GFGNode* left;
+    struct GFGNode* right;
+    
+    GFGNode(int x){
+        data = x;
+        left = right = NULL;
+    }
+};
+
+void leftView1(GFGNode *root) /*bfs*/ {
+    if(root==NULL) return;
+    queue<GFGNode*> q;
+    q.push(root);
+    GFGNode *node=NULL;
+    while(!q.empty()) {
+        int size=(int) q.size();
+        while(size--) {
+            node=q.front(); q.pop();
+            if(node->right!=NULL) q.push(node->right);
+            if(node->left!=NULL) q.push(node->left);
+        }
+        cout<<node->data<<" ";
+    }
+}
+
+void leftView2(GFGNode *root, int level, int& maxLevel) /*dfs*/ {
+    if(root==NULL) return;
+    if(level==maxLevel) {
+        cout<<root->data<<" ";
+        maxLevel++;
+    }
+    leftView2(root->left, level+1, maxLevel);
+    leftView2(root->right, level+1, maxLevel);
+}
+
+void leftView2(GFGNode *root) {
+    int maxLevel=0;
+    leftView2(root, 0, maxLevel);
+}
+
+// GFG - Top View of Binary Tree
+void topView(GFGNode *root) {
+    if(root==NULL) return;
+    map<int, int> map;
+    queue<pair<GFGNode*, int>> q;
+    q.push({root, 0});
+    while(!q.empty()) {
+        int size=(int) q.size();
+        while (size--) {
+            GFGNode *node=q.front().first;
+            int vLevel=q.front().second;
+            q.pop();
+            if(map.find(vLevel)==map.end()) {
+                map[vLevel]=node->data;
+            }
+            if(node->left!=NULL) q.push({node->left, vLevel-1});
+            if(node->right!=NULL) q.push({node->right, vLevel+1});
+        }
+    }
+    for(auto x: map) {
+        cout<<x.second<<" ";
+    }
+}
+
+// GFG - Bottom View of Binary Tree
+vector<int> bottomView1(GFGNode *root) {
+    if(root==NULL) return {};
+    map<int, int> map;
+    queue<pair<GFGNode*, int>> q;
+    vector<int> ans;
+    q.push({root, 0});
+    while(!q.empty()) {
+        int size=(int) q.size();
+        while(size--) {
+            GFGNode *node=q.front().first;
+            int vLevel=q.front().second;
+            q.pop();
+            map[vLevel]=node->data;
+            if(node->left!=NULL) q.push({node->left, vLevel-1});
+            if(node->right!=NULL) q.push({node->right, vLevel+1});
+        }
+    }
+    for(auto x: map) ans.push_back(x.second);
+    return ans;
+}
+
+// GFG - Diagonal Traversal of Binary Tree
+void diagonalTraversal(GFGNode *root, int dLevel, map<int, vector<int>>& map) /*dfs*/ {
+    if(root==NULL) return;
+    map[dLevel].push_back(root->data);
+    diagonalTraversal(root->left, dLevel+1, map);
+    diagonalTraversal(root->right, dLevel, map);
+}
+
+vector<vector<int>> diagonalTraversal(GFGNode *root) {
+    map<int, vector<int>> map;
+    vector<vector<int>> ans;
+    diagonalTraversal(root, 0, map);
+    for(auto x: map) ans.push_back(x.second);
     return ans;
 }
